@@ -186,3 +186,29 @@ export async function runIdeaLab(repoRoot, input = {}) {
   else markdown = offlineIdeaLab(input).markdown;
   return { provider: config.provider, model: config.model, generatedAt: new Date().toISOString(), markdown, artifacts: {} };
 }
+
+
+export async function runStartupChat(repoRoot, input = {}) {
+  const config = readAIConfig(repoRoot);
+  const apiKey = readApiKey(repoRoot, config);
+  const messages = [
+    { role: 'system', content: buildStartupSystemPrompt() },
+    ...(input.history || []).slice(-12).map(m => ({ role: m.role === 'assistant' ? 'assistant' : 'user', content: String(m.content || '') })),
+    { role: 'user', content: `Responda como um time de consultoria Startup AI OS. Contexto do formulário: ${JSON.stringify(input.context || {}, null, 2)}\n\nPergunta: ${input.message || ''}` }
+  ];
+  if (config.provider === 'offline' || (!apiKey && ['openai', 'gemini', 'anthropic'].includes(config.provider))) {
+    const idea = input.context?.idea || input.context?.currentState || input.message || 'negócio ainda não detalhado';
+    return {
+      provider: 'offline',
+      model: 'startup-ai-offline-v1',
+      generatedAt: new Date().toISOString(),
+      message: `Como Startup AI OS, eu começaria estruturando isso em 5 blocos: 1) ICP e dor principal, 2) PV/PUV, 3) diagnóstico de maturidade, 4) MVP ou melhoria operacional, 5) GTM e métricas.\n\nPelo contexto atual (${idea}), minha próxima pergunta seria: qual público tem a dor mais urgente, qual resultado ele compraria agora e qual evidência você já tem disso?\n\nAção prática: preencha os campos de ICP, canais, operação atual, dados disponíveis, orçamento e prazo; depois gere o Dossiê para transformar a conversa em cards, Kanban, SWOT, roadmap e matriz de prioridade.`
+    };
+  }
+  let message = '';
+  if (config.provider === 'openai' || config.provider === 'openai-compatible' || config.provider === 'local-harness') message = await callOpenAICompatible(config, apiKey, messages);
+  else if (config.provider === 'gemini') message = await callGemini(config, apiKey, messages);
+  else if (config.provider === 'anthropic') message = await callAnthropic(config, apiKey, messages);
+  else message = 'Provider não suportado; use offline, OpenAI, Gemini, Anthropic, OpenAI-compatible ou local harness.';
+  return { provider: config.provider, model: config.model, generatedAt: new Date().toISOString(), message };
+}

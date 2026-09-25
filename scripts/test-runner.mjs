@@ -53,8 +53,8 @@ try {
   const serverText = fs.readFileSync('apps/workspace/server.mjs', 'utf8');
   const appText = fs.readFileSync('apps/workspace/public/app.js', 'utf8');
   const htmlText = fs.readFileSync('apps/workspace/public/index.html', 'utf8');
-  for (const token of ['/api/git','/api/events','/api/file','/api/ai/providers','/api/idea-lab','/api/company-dossier','/api/repository/analyze-path']) if (!serverText.includes(token)) throw new Error('missing server endpoint: ' + token);
-  for (const token of ['graph3dCanvas','draw3d','renderActivity','openFile','renderIdeaLab','renderDossier','runIdeaLab','runDossier']) if (!appText.includes(token) && !htmlText.includes(token)) throw new Error('missing workspace feature: ' + token);
+  for (const token of ['/api/git','/api/events','/api/file','/api/ai/providers','/api/idea-lab','/api/company-dossier','/api/repository/analyze-path','/api/idea-chat','/api/web-snapshot']) if (!serverText.includes(token)) throw new Error('missing server endpoint: ' + token);
+  for (const token of ['graph3dCanvas','draw3d','renderActivity','openFile','renderIdeaLab','renderDossier','runIdeaLab','runDossier','sendIdeaChat','collectIdeaContext','diagnostic-cards']) if (!appText.includes(token) && !htmlText.includes(token)) throw new Error('missing workspace feature: ' + token);
   console.log('OK workspace server files validate');
   console.log('OK workspace graph, git, AI and dossier endpoints validate');
 } catch (error) {

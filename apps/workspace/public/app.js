@@ -2,7 +2,8 @@
 const state = {
   data: null, git: null, events: [], view: 'architecture', density: 'essential', query: '',
   transform: { x: 80, y: 80, scale: 1 }, nodes: [], edges: [], selected: null, dragging: null, panning: null,
-  graph3d: { nodes: [], edges: [], rotX: -0.2, rotY: 0.5, zoom: 1, dragging: null, selected: null }
+  graph3d: { nodes: [], edges: [], rotX: -0.2, rotY: 0.5, zoom: 1, dragging: null, selected: null },
+  ideaChat: []
 };
 const el = (id) => document.getElementById(id);
 const qs = (s, r = document) => r.querySelector(s);
@@ -55,21 +56,34 @@ async function loadAIProviders(){
 }
 function renderIdeaLab(){
   el('view-idea').innerHTML = `<div class="cards">
-    <div class="card span-8"><h2>Idea Lab</h2><p>Converse com agentes de startup, negócio, produto, growth, tecnologia, dados, MLOps, operações e financeiro. Use modo offline ou plugue seu modelo via API Key.</p></div>
-    <div class="card span-4"><h2>Jornada</h2><p>Ideação → Discovery → PV/PUV → Protótipo → MVP → GTM → Operação → Escala.</p></div>
-    <div class="card span-5"><h2>Modelo de IA</h2><div id="aiProviderPanel" class="stack-form"><p>Carregando providers...</p></div></div>
-    <div class="card span-7"><h2>Descreva a ideia</h2>
-      <label>Tipo de empresa</label><select id="companyType" class="select wide"><option value="startup">Startup / empresa de tecnologia</option><option value="traditional-digitalization">Empresa tradicional indo para o digital</option><option value="existing-tech-company">Empresa de tecnologia existente</option><option value="physical-business">Negócio físico com melhoria operacional</option></select>
-      <label>Horizonte</label><select id="ideaHorizon" class="select wide"><option>7 dias</option><option selected>90 dias</option><option>6 meses</option><option>12 meses</option></select>
-      <label>Contexto opcional</label><textarea id="ideaContext" class="textarea" placeholder="Mercado, público, recursos, time, restrições..."></textarea>
-      <label>Ideia</label><textarea id="ideaText" class="textarea big" placeholder="Ex: Quero criar uma plataforma para digitalizar escolas tradicionais com IA, funil, automações e métricas..."></textarea>
-      <button id="runIdeaLab" class="btn primary">Gerar plano Startup AI OS</button>
+    <div class="card span-8"><h2>Idea Lab / Startup Studio</h2><p>Para ideia do zero, empresa existente ou transformação digital. Preencha o máximo possível; o sistema gera cards, matrizes, Kanban, MVP, GTM, roadmap e usa IA plugável quando configurada.</p></div>
+    <div class="card span-4"><h2>Entrada inteligente</h2><p>Ideia → diagnóstico → mapa mental → cards → plano 7/30/90 → execução.</p></div>
+    <div class="card span-4"><h2>Modelo / Harness</h2><div id="aiProviderPanel" class="stack-form"><p>Carregando providers...</p></div></div>
+    <div class="card span-5">
+      <h2>Brief guiado</h2>
+      <div class="form-grid two">
+        <div><label>Modo</label><select id="companyType" class="select wide"><option value="startup">Criar startup/empresa tech</option><option value="traditional-digitalization">Digitalizar empresa tradicional</option><option value="existing-tech-company">Melhorar empresa tech existente</option><option value="physical-business">Melhorar negócio físico</option></select></div>
+        <div><label>Horizonte</label><select id="ideaHorizon" class="select wide"><option>7 dias</option><option selected>90 dias</option><option>6 meses</option><option>12 meses</option></select></div>
+      </div>
+      <label>Ideia / empresa / problema</label><textarea id="ideaText" class="textarea big" placeholder="Conte a ideia ou a empresa existente. Qual dor resolve? Quem compra? O que existe hoje?"></textarea>
+      <div class="form-grid two">
+        <div><label>ICP / público</label><textarea id="ideaIcp" class="textarea" placeholder="Quem é o cliente ideal? Segmento, cargo, perfil, região..."></textarea></div>
+        <div><label>Dor / Jobs to be done</label><textarea id="ideaPain" class="textarea" placeholder="Qual dor urgente? Qual job o cliente quer resolver?"></textarea></div>
+      </div>
+      <label>Site e redes para análise</label>
+      <div class="form-grid two"><input id="ideaWebsite" class="input wide" placeholder="https://site.com"/><input id="ideaInstagram" class="input wide" placeholder="Instagram / rede social"/></div>
+      <div class="form-grid two"><input id="ideaLinkedin" class="input wide" placeholder="LinkedIn"/><input id="ideaYoutube" class="input wide" placeholder="YouTube / TikTok / comunidade"/></div>
+      <label>Contexto operacional</label><textarea id="ideaContext" class="textarea" placeholder="Time, canais, dados, budget, restrições, sistemas atuais, concorrentes..."></textarea>
+      <button id="runIdeaLab" class="btn primary">Gerar diagnóstico e cards</button>
     </div>
-    <div class="card span-12"><h2>Resultado</h2><div id="ideaResult" class="idea-result empty">O plano aparecerá aqui com SWOT, PUV, canvas, MVP, Kanban, Scrum, 7/30/90 dias e roadmap.</div></div>
+    <div class="card span-3 chat-card"><h2>Chat com agentes</h2><div id="ideaChatLog" class="chat-log"><div class="chat-msg assistant">Me conte sua ideia ou empresa. Eu vou agir como founder strategist, PM, arquiteto, growth, dados e operações.</div></div><textarea id="ideaChatInput" class="textarea" placeholder="Pergunte: qual MVP? qual tecnologia? como validar? qual GTM?"></textarea><button id="sendIdeaChat" class="btn">Enviar para IA</button></div>
+    <div class="card span-12"><h2>Diagnóstico automático</h2><div id="ideaCards" class="diagnostic-cards"></div><div id="ideaResult" class="idea-result empty">O plano aparecerá aqui com SWOT, PUV, canvas, MVP, Kanban, Scrum, matrizes e roadmap.</div></div>
   </div>`;
   hydrateProviderPanel();
   el('runIdeaLab').onclick = runIdeaLab;
+  el('sendIdeaChat').onclick = sendIdeaChat;
 }
+
 async function hydrateProviderPanel(){
   try{
     const payload = await loadAIProviders();
@@ -91,59 +105,120 @@ async function saveAIConfig(){
   el('ideaResult').innerHTML = json.ok ? '<p>Provider salvo localmente.</p>' : `<p>${esc(json.error)}</p>`;
   await hydrateProviderPanel();
 }
+function collectIdeaContext(){
+  return {
+    idea: el('ideaText')?.value || '',
+    icp: el('ideaIcp')?.value || '',
+    pain: el('ideaPain')?.value || '',
+    website: el('ideaWebsite')?.value || '',
+    instagram: el('ideaInstagram')?.value || '',
+    linkedin: el('ideaLinkedin')?.value || '',
+    youtube: el('ideaYoutube')?.value || '',
+    context: el('ideaContext')?.value || '',
+    companyType: el('companyType')?.value || 'startup',
+    horizon: el('ideaHorizon')?.value || '90 dias'
+  };
+}
+function renderAutoCards(cards = [], matrices = null){
+  const target = el('ideaCards');
+  if(!target) return;
+  if(!cards.length && !matrices){ target.innerHTML = ''; return; }
+  const cardHtml = cards.map(c=>`<div class="auto-card ${esc(c.priority || '')}"><div class="auto-card-type">${esc(c.type || 'card')}</div><h3>${esc(c.title)}</h3><p>${esc(c.body)}</p></div>`).join('');
+  const matrixHtml = matrices ? `<div class="auto-card"><div class="auto-card-type">Matrizes</div><h3>SWOT / Eisenhower / Priorização</h3><p>SWOT, Eisenhower, MoSCoW, ICE/RICE e Kanban foram gerados no relatório abaixo.</p></div>` : '';
+  target.innerHTML = cardHtml + matrixHtml;
+}
+async function sendIdeaChat(){
+  const input = el('ideaChatInput');
+  const log = el('ideaChatLog');
+  const message = input.value.trim();
+  if(!message) return;
+  state.ideaChat.push({ role:'user', content: message });
+  log.innerHTML += `<div class="chat-msg user">${esc(message)}</div>`;
+  input.value = '';
+  log.innerHTML += `<div class="chat-msg assistant pending">Pensando com os agentes...</div>`;
+  log.scrollTop = log.scrollHeight;
+  const res = await fetch('/api/idea-chat', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify({ message, history: state.ideaChat, context: collectIdeaContext() }) });
+  const json = await res.json();
+  const pending = qs('.pending', log);
+  if(!json.ok){ pending.textContent = json.error || 'Erro no chat.'; return; }
+  const answer = json.result.message || '';
+  state.ideaChat.push({ role:'assistant', content: answer });
+  pending.classList.remove('pending');
+  pending.innerHTML = markdownLite(answer);
+  log.scrollTop = log.scrollHeight;
+}
+
 async function runIdeaLab(){
   const result = el('ideaResult');
-  result.innerHTML = '<p>Gerando plano com os agentes Startup AI OS...</p>';
-  const body = { idea: el('ideaText').value, context: el('ideaContext').value, companyType: el('companyType').value, horizon: el('ideaHorizon').value };
+  result.innerHTML = '<p>Gerando plano com agentes de startup, produto, GTM, tecnologia, dados e operação...</p>';
+  const ctx = collectIdeaContext();
+  let websiteSnapshot = null;
+  if(ctx.website){
+    try {
+      const snap = await fetch('/api/web-snapshot?url=' + encodeURIComponent(ctx.website)).then(r=>r.json());
+      if(snap.ok) websiteSnapshot = snap.snapshot;
+    } catch {}
+  }
+  const body = { ...ctx, context: [ctx.context, ctx.icp && `ICP: ${ctx.icp}`, ctx.pain && `Dor/JTBD: ${ctx.pain}`, websiteSnapshot && `Site: ${websiteSnapshot.title} · ${websiteSnapshot.description}`].filter(Boolean).join('\n') };
   const res = await fetch('/api/idea-lab', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
   const json = await res.json();
   if(!json.ok){ result.innerHTML = `<p>${esc(json.error)}</p>`; return; }
-  result.innerHTML = `<div class="provider-note">Provider: ${esc(json.result.provider)} · Modelo: ${esc(json.result.model)}</div>${markdownLite(json.result.markdown)}`;
+  renderAutoCards([{type:'idea', title:'Plano gerado', body:'O Idea Lab criou plano, matrizes, MVP, Kanban e roadmap.', priority:'high'}], json.result.artifacts);
+  result.innerHTML = `<div class="provider-note">Provider: ${esc(json.result.provider)} · Modelo: ${esc(json.result.model)}</div>${websiteSnapshot ? `<div class="provider-note">Site lido: ${esc(websiteSnapshot.title || websiteSnapshot.url)}</div>` : ''}${markdownLite(json.result.markdown)}`;
 }
-
 
 function renderDossier(){
   el('view-dossier').innerHTML = `<div class="cards">
-    <div class="card span-8"><h2>Dossiê de maturidade e transformação</h2><p>Use como consultoria com cliente: mede maturidade, conecta ideia/empresa/código, recomenda fase, GTM, arquitetura de dados, Kanban e roadmap.</p></div>
-    <div class="card span-4"><h2>Para quem serve</h2><p>Startup nova, empresa de tecnologia existente, empresa tradicional indo para o digital ou negócio físico buscando escala com IA/growth.</p></div>
-    <div class="card span-6">
-      <h2>Brief da empresa</h2>
-      <label>Nome</label><input id="dossierCompany" class="input wide" placeholder="Nome da empresa ou projeto" />
-      <label>Tipo</label><select id="dossierType" class="select wide"><option value="startup">Startup / empresa de tecnologia</option><option value="existing-tech-company">Empresa de tecnologia existente</option><option value="traditional-digitalization">Empresa tradicional indo para o digital</option><option value="physical-business">Negócio físico + tecnologia</option></select>
-      <label>Setor</label><input id="dossierIndustry" class="input wide" placeholder="Educação, saúde, varejo, serviços, indústria..." />
-      <label>Contexto atual</label><textarea id="dossierCurrent" class="textarea big" placeholder="Como a empresa funciona hoje? Quais dores, processos, canais, equipe e limitações?"></textarea>
-      <label>Objetivos</label><textarea id="dossierGoals" class="textarea" placeholder="O que precisa alcançar nos próximos dias, semanas e meses?"></textarea>
+    <div class="card span-8"><h2>Dossiê completo de empresa</h2><p>Para consultoria com cliente: maturidade, negócio, operação, tecnologia, dados, IA, GTM, redes, site, código local e roadmap.</p></div>
+    <div class="card span-4"><h2>Entrada</h2><p>Serve para ideia, empresa tech, empresa tradicional ou negócio físico buscando digitalização e escala.</p></div>
+    <div class="card span-6"><h2>1. Negócio</h2>
+      <div class="form-grid two"><input id="dossierCompany" class="input wide" placeholder="Nome da empresa/projeto"/><select id="dossierType" class="select wide"><option value="startup">Startup</option><option value="existing-tech-company">Empresa tech existente</option><option value="traditional-digitalization">Empresa tradicional → digital</option><option value="physical-business">Negócio físico + tecnologia</option></select></div>
+      <div class="form-grid two"><input id="dossierIndustry" class="input wide" placeholder="Setor"/><input id="dossierBudget" class="input wide" placeholder="Budget / recursos"/></div>
+      <textarea id="dossierCurrent" class="textarea big" placeholder="Estado atual: operação, produto, clientes, canais, receita, dores..."></textarea>
+      <textarea id="dossierGoals" class="textarea" placeholder="Objetivos para próximos dias, semanas e meses"></textarea>
+      <textarea id="dossierIdea" class="textarea" placeholder="Ideia, transformação, produto ou oportunidade"></textarea>
     </div>
-    <div class="card span-6">
-      <h2>Evidências técnicas</h2>
-      <label>Caminho local do repositório/código</label><input id="dossierRepoPath" class="input wide" placeholder="Ex: C:\\Users\\...\\MeuProjeto" />
-      <p class="help-text">Opcional. Se preencher, o Startup AI OS analisa código local e cruza com negócio. GitHub com autenticação entra como adapter futuro.</p>
-      <label>Ideia / transformação desejada</label><textarea id="dossierIdea" class="textarea big" placeholder="Descreva a ideia, transformação digital, produto, operação ou empresa que quer criar/melhorar..."></textarea>
-      <label>Dados, canais, time e restrições</label><textarea id="dossierExtra" class="textarea" placeholder="Dados disponíveis, canais, budget, equipe, prazo, restrições legais/técnicas..."></textarea>
-      <button id="runDossier" class="btn primary">Gerar dossiê completo</button>
+    <div class="card span-6"><h2>2. Evidências e presença digital</h2>
+      <input id="dossierWebsite" class="input wide" placeholder="Site para scraping básico"/>
+      <div class="form-grid two"><input id="dossierInstagram" class="input wide" placeholder="Instagram"/><input id="dossierLinkedin" class="input wide" placeholder="LinkedIn"/></div>
+      <div class="form-grid two"><input id="dossierYoutube" class="input wide" placeholder="YouTube/TikTok"/><input id="dossierCompetitors" class="input wide" placeholder="Concorrentes / referências"/></div>
+      <input id="dossierRepoPath" class="input wide" placeholder="Caminho local do repositório/código" />
+      <p class="help-text">Local primeiro. GitHub com autenticação/API entra como adapter: clone/fetch/permissions.</p>
     </div>
-    <div class="card span-12"><h2>Resultado</h2><div id="dossierResult" class="idea-result empty">O dossiê aparecerá aqui com maturidade, SWOT, GTM, arquitetura de dados, Kanban e roadmap.</div></div>
+    <div class="card span-6"><h2>3. Operação, dados e tecnologia</h2>
+      <textarea id="dossierSystems" class="textarea" placeholder="Sistemas atuais: planilhas, CRM, ERP, WhatsApp, site, banco, automações..."></textarea>
+      <textarea id="dossierDataSources" class="textarea" placeholder="Dados disponíveis: leads, vendas, alunos, estoque, financeiro, produto, eventos..."></textarea>
+      <textarea id="dossierOps" class="textarea" placeholder="Processo de venda, atendimento, entrega, suporte, qualidade..."></textarea>
+    </div>
+    <div class="card span-6"><h2>4. GTM, métricas e riscos</h2>
+      <textarea id="dossierChannels" class="textarea" placeholder="Canais atuais e desejados: outbound, tráfego, conteúdo, parcerias, comunidade, indicação..."></textarea>
+      <textarea id="dossierMetrics" class="textarea" placeholder="Métricas: CAC, LTV, conversão, churn, ticket, margem, SLA, produtividade..."></textarea>
+      <textarea id="dossierRisks" class="textarea" placeholder="Restrições legais/técnicas, time, prazo, concorrência, riscos..."></textarea>
+      <button id="runDossier" class="btn primary">Gerar dossiê, cards e matrizes</button>
+    </div>
+    <div class="card span-12"><h2>Cards automáticos</h2><div id="dossierCards" class="diagnostic-cards"></div></div>
+    <div class="card span-12"><h2>Resultado</h2><div id="dossierResult" class="idea-result empty">O dossiê aparecerá aqui com maturidade, SWOT, GTM, arquitetura de dados, Kanban, roadmap e matriz de prioridade.</div></div>
   </div>`;
   el('runDossier').onclick = runDossier;
 }
 async function runDossier(){
   const result = el('dossierResult');
-  result.innerHTML = '<p>Analisando maturidade, negócio, tecnologia e operação...</p>';
+  result.innerHTML = '<p>Mapeando empresa, site, redes, dados, operação, código e maturidade...</p>';
   const body = {
-    companyName: el('dossierCompany').value,
-    companyType: el('dossierType').value,
-    industry: el('dossierIndustry').value,
-    currentState: el('dossierCurrent').value,
-    goals: el('dossierGoals').value,
-    idea: el('dossierIdea').value,
-    constraints: el('dossierExtra').value,
-    repositoryPath: el('dossierRepoPath').value.trim(),
+    companyName: el('dossierCompany').value, companyType: el('dossierType').value, industry: el('dossierIndustry').value,
+    budget: el('dossierBudget').value, currentState: el('dossierCurrent').value, goals: el('dossierGoals').value, idea: el('dossierIdea').value,
+    website: el('dossierWebsite').value, instagram: el('dossierInstagram').value, linkedin: el('dossierLinkedin').value,
+    youtube: el('dossierYoutube').value, competitors: el('dossierCompetitors').value, repositoryPath: el('dossierRepoPath').value.trim(),
+    currentSystems: el('dossierSystems').value, dataSources: el('dossierDataSources').value, operations: el('dossierOps').value,
+    channels: el('dossierChannels').value, metrics: el('dossierMetrics').value, legalRisks: el('dossierRisks').value,
     includeCurrentRepository: !el('dossierRepoPath').value.trim()
   };
   const res = await fetch('/api/company-dossier', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
   const json = await res.json();
   if(!json.ok){ result.innerHTML = `<p>${esc(json.error)}</p>`; return; }
   const d = json.dossier;
+  const cards = d.cards || [];
+  el('dossierCards').innerHTML = cards.map(c=>`<div class="auto-card ${esc(c.priority||'')}"><div class="auto-card-type">${esc(c.type)}</div><h3>${esc(c.title)}</h3><p>${esc(c.body)}</p></div>`).join('');
   result.innerHTML = `<div class="provider-note">Maturidade: ${esc(d.maturity.level)} · ${esc(d.maturity.score)}/5 · Fase: ${esc(d.maturity.recommendedStage.label)}</div>${markdownLite(d.markdown)}`;
 }
 

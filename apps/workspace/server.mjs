@@ -4,7 +4,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
-import { PROVIDERS, readAIConfig, saveAIConfig, runIdeaLab } from './ai/providers.mjs';
+import httpNet from 'node:http';
+import httpsNet from 'node:https';
+import { PROVIDERS, readAIConfig, saveAIConfig, runIdeaLab, runStartupChat } from './ai/providers.mjs';
 import { generateCompanyDossier } from './ai/consulting.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -118,6 +120,38 @@ function gitActivity() {
   };
 }
 
+
+function fetchUrlText(rawUrl) {
+  return new Promise((resolve, reject) => {
+    if (!rawUrl) return resolve({ ok: false, error: 'missing url' });
+    let parsed;
+    try { parsed = new URL(rawUrl); } catch { return resolve({ ok: false, error: 'invalid url' }); }
+    if (!['http:', 'https:'].includes(parsed.protocol)) return resolve({ ok: false, error: 'only http/https allowed' });
+    const client = parsed.protocol === 'https:' ? httpsNet : httpNet;
+    const req = client.get(parsed, { timeout: 10000, headers: { 'user-agent': 'StartupAIOS/0.1' } }, response => {
+      let body = '';
+      response.setEncoding('utf8');
+      response.on('data', chunk => {
+        body += chunk;
+        if (body.length > 750000) req.destroy(new Error('response too large'));
+      });
+      response.on('end', () => resolve({ ok: true, status: response.statusCode, url: parsed.toString(), body }));
+    });
+    req.on('timeout', () => req.destroy(new Error('timeout')));
+    req.on('error', error => resolve({ ok: false, error: error.message }));
+  });
+}
+
+function extractWebsiteSnapshot(url, html) {
+  const clean = String(html || '').replace(/<script[\s\S]*?<\/script>/gi, '').replace(/<style[\s\S]*?<\/style>/gi, '');
+  const text = clean.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+  const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '').replace(/\s+/g, ' ').trim();
+  const description = (html.match(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']+)/i)?.[1] || html.match(/<meta[^>]+content=["']([^"']+)["'][^>]+name=["']description["']/i)?.[1] || '').trim();
+  const headings = [...html.matchAll(/<h[1-3][^>]*>([\s\S]*?)<\/h[1-3]>/gi)].map(m => m[1].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim()).filter(Boolean).slice(0, 18);
+  const links = [...html.matchAll(/<a[^>]+href=["']([^"']+)/gi)].map(m => m[1]).filter(Boolean).slice(0, 40);
+  return { url, title, description, headings, links, textPreview: text.slice(0, 3000) };
+}
+
 function safeReadFile(queryPath) {
   if (!queryPath) return { ok: false, error: 'missing path' };
   const requested = path.resolve(targetPath, queryPath);
@@ -177,6 +211,30 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+
+
+  if (url.pathname === '/api/idea-chat') {
+    if (req.method !== 'POST') {
+      sendJson(res, 405, { ok: false, error: 'POST required' });
+      return;
+    }
+    try {
+      const body = await readJsonBody(req);
+      const result = await runStartupChat(repoRoot, body);
+      sendJson(res, 200, { ok: true, result });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/web-snapshot') {
+    const targetUrl = url.searchParams.get('url');
+    const fetched = await fetchUrlText(targetUrl);
+    if (!fetched.ok) return sendJson(res, 200, fetched);
+    return sendJson(res, 200, { ok: true, snapshot: extractWebsiteSnapshot(fetched.url, fetched.body) });
+  }
+
   if (url.pathname === '/api/idea-lab') {
     if (req.method !== 'POST') {
       sendJson(res, 405, { ok: false, error: 'POST required' });
@@ -218,6 +276,10 @@ const server = http.createServer(async (req, res) => {
     }
     try {
       const body = await readJsonBody(req);
+      if (body.website && !body.websiteSnapshot) {
+        const fetched = await fetchUrlText(body.website);
+        if (fetched.ok) body.websiteSnapshot = extractWebsiteSnapshot(fetched.url, fetched.body);
+      }
       let repoAnalysis = null;
       if (body.repositoryPath) {
         const requestedPath = path.resolve(process.cwd(), body.repositoryPath);

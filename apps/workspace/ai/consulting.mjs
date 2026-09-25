@@ -57,7 +57,11 @@ export function generateCompanyDossier(input = {}, repoAnalysis = null) {
   const text = [
     input.companyName, input.companyType, input.industry, input.idea,
     input.currentState, input.goals, input.customers, input.channels,
-    input.team, input.operations, input.technology, input.data, input.constraints
+    input.team, input.operations, input.technology, input.data, input.constraints, input.website, input.instagram, input.linkedin, input.youtube, input.competitors, input.budget, input.timeline, input.metrics,
+    input.website, input.instagram, input.linkedin, input.youtube, input.tiktok,
+    input.competitors, input.budget, input.timeline, input.metrics, input.currentSystems,
+    input.salesProcess, input.deliveryProcess, input.dataSources, input.legalRisks,
+    input.websiteSnapshot?.title, input.websiteSnapshot?.description, input.websiteSnapshot?.headings?.join('\n')
   ].filter(Boolean).join('\n');
   const scores = MATURITY_DIMENSIONS.map(dim => ({ ...dim, score: scoreDimension(text, dim, repoAnalysis) }));
   const weighted = scores.reduce((sum, item) => sum + item.score * item.weight, 0) / scores.reduce((sum, item) => sum + item.weight, 0);
@@ -74,7 +78,62 @@ export function generateCompanyDossier(input = {}, repoAnalysis = null) {
     maturity: { score: Number(weighted.toFixed(2)), level: maturityLevel(weighted), recommendedStage: stage },
     dimensions: scores,
     stages: COMPANY_STAGES,
-    markdown
+    markdown,
+    cards: buildConsultingCards(input, scores, stage, repoAnalysis),
+    matrices: buildMatrices(input, scores),
+    mindMap: buildMindMap(input, scores, stage, repoAnalysis)
+  };
+}
+
+function buildConsultingCards(input, scores, stage, repoAnalysis) {
+  const low = scores.filter(s => s.score <= 2).map(s => s.label);
+  const company = input.companyName || 'Empresa / Ideia';
+  return [
+    { type: 'diagnosis', title: 'Diagnóstico executivo', body: `${company} está na fase recomendada ${stage.label}. O foco agora é ${stage.objective}`, priority: 'high' },
+    { type: 'value', title: 'PV / PUV', body: 'Clarificar promessa, diferencial e resultado que o cliente compra antes de construir mais tecnologia.', priority: 'high' },
+    { type: 'customer', title: 'ICP e Jobs', body: 'Mapear segmentos, dores, jobs to be done, objeções, gatilhos de compra e critérios de sucesso.', priority: 'high' },
+    { type: 'gtm', title: 'GTM', body: 'Definir canal principal, mensagem, oferta, processo comercial, ativação, retenção e expansão.', priority: 'medium' },
+    { type: 'tech', title: 'Arquitetura e automação', body: repoAnalysis ? `Repositório anexado com ${repoAnalysis.project?.files_scanned || 0} arquivos. Cruzar arquitetura com valor de negócio.` : 'Sem repositório anexado. Começar pela arquitetura conceitual e depois conectar código local/GitHub.', priority: 'medium' },
+    { type: 'data', title: 'Dados / IA / MLOps', body: 'Definir fontes de dados, eventos, métricas, scoring, agentes, avaliação e governança de IA.', priority: 'medium' },
+    { type: 'ops', title: 'Operação física + digital', body: 'Transformar rotina, atendimento, entrega e gestão em processos mensuráveis e automatizáveis.', priority: 'medium' },
+    { type: 'risk', title: 'Áreas críticas', body: low.length ? `Priorizar: ${low.join(', ')}.` : 'Não há área crítica óbvia pela heurística inicial; validar com dados reais.', priority: low.length ? 'high' : 'low' }
+  ];
+}
+
+function buildMatrices(input, scores) {
+  const weak = scores.filter(s => s.score <= 2).map(s => s.label);
+  return {
+    swot: {
+      strengths: ['Intenção de estruturar empresa como sistema', 'Potencial de aplicar tecnologia, IA, dados e growth'],
+      weaknesses: weak.length ? weak : ['Hipóteses ainda precisam de validação real'],
+      opportunities: ['Digitalização', 'Automação', 'Novos canais', 'Melhor experiência', 'Eficiência operacional'],
+      threats: ['Baixa adoção', 'Concorrência', 'Escopo amplo', 'Falta de dados', 'Execução sem foco']
+    },
+    eisenhower: {
+      urgentImportant: ['Definir ICP', 'Clarificar PUV', 'Mapear problema central', 'Escolher experimento de validação'],
+      importantNotUrgent: ['Sistema de métricas', 'Arquitetura alvo', 'Playbooks', 'Governança de IA'],
+      urgentNotImportant: ['Demandas visuais antes da validação', 'Features soltas sem métrica'],
+      neither: ['Automação avançada sem processo validado']
+    },
+    prioritization: {
+      moscow: ['Must: ICP, PUV, diagnóstico, MVP, métrica', 'Should: GTM, automações, CRM', 'Could: integrações avançadas', 'Won\'t now: features sem evidência'],
+      rice: ['Reach: alcance do segmento', 'Impact: impacto em receita/eficiência', 'Confidence: evidência', 'Effort: esforço do time'],
+      kanban: ['Backlog', 'Fazer agora', 'Fazendo', 'Validar', 'Aprendido/Entregue']
+    }
+  };
+}
+
+function buildMindMap(input, scores, stage, repoAnalysis) {
+  return {
+    center: input.companyName || input.idea || 'Startup AI OS Diagnosis',
+    branches: [
+      { label: 'Negócio', children: ['ICP', 'PV', 'PUV', 'Oferta', 'Pricing', 'Business Canvas'] },
+      { label: 'Produto', children: ['Discovery', 'Protótipo', 'MVP', 'Roadmap', 'Backlog', 'Métricas'] },
+      { label: 'GTM / Growth', children: ['Canais', 'Funil', 'Mensagem', 'Vendas', 'Retenção', 'Loops'] },
+      { label: 'Tecnologia', children: repoAnalysis ? ['Código local', 'Arquitetura', 'APIs', 'Dados', 'IA', 'MLOps'] : ['Arquitetura alvo', 'Stack', 'APIs', 'Dados', 'IA', 'MLOps'] },
+      { label: 'Operação', children: ['Processos', 'SOPs', 'Atendimento', 'Entrega', 'Qualidade', 'Rituais'] },
+      { label: 'Fase recomendada', children: [stage.label, stage.objective] }
+    ]
   };
 }
 
@@ -84,5 +143,5 @@ function renderScoreTable(scores) {
 
 function renderDossierMarkdown({ input, repoAnalysis, scores, weighted, stage, companyName, type }) {
   const repoBlock = repoAnalysis ? `\n## Código / repositório analisado\n\n- Arquivos: **${repoAnalysis.project?.files_scanned || 0}**\n- Linhas: **${repoAnalysis.project?.total_lines || 0}**\n- Camadas detectadas: ${(repoAnalysis.architecture?.layers || []).join(', ') || 'não detectadas'}\n` : '\n## Código / repositório\n\nNenhum repositório foi anexado ainda. A análise pode começar apenas pela ideia/empresa e depois incorporar código local ou GitHub.\n';
-  return `# Dossiê Startup AI OS · ${companyName}\n\n## Leitura executiva\n\nTipo: **${type}**.\n\nMaturidade estimada: **${maturityLevel(weighted)}** (${weighted.toFixed(2)}/5).\n\nFase recomendada: **${stage.label}** — ${stage.objective}\n\n## Ideia / contexto\n\n${input.idea || input.currentState || 'Contexto ainda não descrito.'}\n\n${repoBlock}\n\n## Maturidade por área\n\n${renderScoreTable(scores)}\n\n## PV / PUV\n\n**PV provisória:** entregar um resultado claro para um público específico com menos fricção, mais previsibilidade e melhor experiência.\n\n**PUV provisória:** combinar negócio, tecnologia, IA, dados, operações e growth em um sistema único para criar, digitalizar ou escalar a empresa.\n\n## SWOT\n\n| Forças | Fraquezas |\n| --- | --- |\n| Existe intenção de estruturar tecnologia, negócio e operação. | A maturidade ainda precisa ser validada com dados reais e clientes. |\n| Pode conectar mundo físico e digital. | Risco de escopo amplo demais sem priorização. |\n\n| Oportunidades | Ameaças |\n| --- | --- |\n| Digitalização, IA, automação, dados, canais digitais e eficiência operacional. | Concorrência, adoção baixa, dependência de pessoas-chave e falta de foco. |\n\n## GTM\n\n1. Definir ICP prioritário.\n2. Escrever promessa e PUV em linguagem simples.\n3. Criar prova de valor em 7 dias.\n4. Escolher canal principal: outbound, conteúdo, parcerias, comunidade, performance ou vendas consultivas.\n5. Montar funil: atração → diagnóstico → proposta → fechamento → onboarding → retenção.\n\n## Arquitetura de dados / IA\n\n- Mapear dados disponíveis e dados necessários.\n- Definir eventos críticos do funil e da operação.\n- Criar score de oportunidade/risco.\n- Definir governança de prompts, agentes, avaliações e qualidade.\n- Separar o que pertence ao Startup AI OS e o que será DevOps OS.\n\n## Kanban inicial\n\n| Backlog | Fazer agora | Fazendo | Validar |\n| --- | --- | --- | --- |\n| Pesquisa de cliente | ICP e dor principal | Protótipo | Entrevistas |\n| Canvas e PUV | Plano 7 dias | MVP | Métricas |\n| Stack tecnológica | Backlog | GTM | Aprendizados |\n\n## Roadmap\n\n### Próximos 7 dias\n- Definir ICP, dor e PUV.\n- Criar brief da empresa/ideia.\n- Rodar 5 a 10 entrevistas.\n- Criar prova de valor.\n\n### Próximos 30 dias\n- Validar proposta, canal e MVP.\n- Organizar backlog e rotina ágil.\n- Medir ativação, interesse e conversão.\n\n### Próximos 90 dias\n- Escalar o canal que funciona.\n- Padronizar operação.\n- Criar sistema de dados e automação.\n- Revisar unit economics.\n\n## Próxima ação recomendada\n\nComece pela fase **${stage.label}** e transforme este dossiê em tarefas no Kanban.\n`;
+  return `# Dossiê Startup AI OS · ${companyName}\n\n## Leitura executiva\n\nTipo: **${type}**.\n\nMaturidade estimada: **${maturityLevel(weighted)}** (${weighted.toFixed(2)}/5).\n\nFase recomendada: **${stage.label}** — ${stage.objective}\n\n## Ideia / contexto\n\n${input.idea || input.currentState || 'Contexto ainda não descrito.'}\n\n## Presença digital e evidências\n\n- Site: ${input.website || 'não informado'}\n- Instagram: ${input.instagram || 'não informado'}\n- LinkedIn: ${input.linkedin || 'não informado'}\n- YouTube: ${input.youtube || 'não informado'}\n- Concorrentes: ${input.competitors || 'não informado'}\n\n${repoBlock}\n\n## Maturidade por área\n\n${renderScoreTable(scores)}\n\n## PV / PUV\n\n**PV provisória:** entregar um resultado claro para um público específico com menos fricção, mais previsibilidade e melhor experiência.\n\n**PUV provisória:** combinar negócio, tecnologia, IA, dados, operações e growth em um sistema único para criar, digitalizar ou escalar a empresa.\n\n## SWOT\n\n| Forças | Fraquezas |\n| --- | --- |\n| Existe intenção de estruturar tecnologia, negócio e operação. | A maturidade ainda precisa ser validada com dados reais e clientes. |\n| Pode conectar mundo físico e digital. | Risco de escopo amplo demais sem priorização. |\n\n| Oportunidades | Ameaças |\n| --- | --- |\n| Digitalização, IA, automação, dados, canais digitais e eficiência operacional. | Concorrência, adoção baixa, dependência de pessoas-chave e falta de foco. |\n\n## GTM\n\n1. Definir ICP prioritário.\n2. Escrever promessa e PUV em linguagem simples.\n3. Criar prova de valor em 7 dias.\n4. Escolher canal principal: outbound, conteúdo, parcerias, comunidade, performance ou vendas consultivas.\n5. Montar funil: atração → diagnóstico → proposta → fechamento → onboarding → retenção.\n\n## Arquitetura de dados / IA\n\n- Mapear dados disponíveis e dados necessários.\n- Definir eventos críticos do funil e da operação.\n- Criar score de oportunidade/risco.\n- Definir governança de prompts, agentes, avaliações e qualidade.\n- Separar o que pertence ao Startup AI OS e o que será DevOps OS.\n\n## Kanban inicial\n\n| Backlog | Fazer agora | Fazendo | Validar |\n| --- | --- | --- | --- |\n| Pesquisa de cliente | ICP e dor principal | Protótipo | Entrevistas |\n| Canvas e PUV | Plano 7 dias | MVP | Métricas |\n| Stack tecnológica | Backlog | GTM | Aprendizados |\n\n## Roadmap\n\n### Próximos 7 dias\n- Definir ICP, dor e PUV.\n- Criar brief da empresa/ideia.\n- Rodar 5 a 10 entrevistas.\n- Criar prova de valor.\n\n### Próximos 30 dias\n- Validar proposta, canal e MVP.\n- Organizar backlog e rotina ágil.\n- Medir ativação, interesse e conversão.\n\n### Próximos 90 dias\n- Escalar o canal que funciona.\n- Padronizar operação.\n- Criar sistema de dados e automação.\n- Revisar unit economics.\n\n## Próxima ação recomendada\n\nComece pela fase **${stage.label}** e transforme este dossiê em tarefas no Kanban.\n`;
 }
