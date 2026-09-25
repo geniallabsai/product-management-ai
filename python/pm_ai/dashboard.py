@@ -1,4 +1,4 @@
-﻿"""Standalone interactive dashboard renderer for Product Management AI."""
+"""Standalone interactive dashboard renderer for Product Management AI."""
 from __future__ import annotations
 
 import datetime as _dt
@@ -41,34 +41,34 @@ DASHBOARD_HTML = r"""<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Genial Product Map · __PM_AI_TITLE__</title>
+<title>Genial Product OS · __PM_AI_TITLE__</title>
 <style>
 :root{
-  --bg:#050807; --bg2:#07130d; --panel:rgba(12,28,19,.78); --panel2:rgba(18,43,29,.82);
-  --card:#0d1f15; --green:#00f58a; --green2:#64ffb1; --mint:#c9ffdf; --text:#f3fff8;
-  --muted:#9ab8a7; --muted2:#6d8a79; --line:rgba(133,255,184,.16); --line2:rgba(133,255,184,.28);
-  --amber:#ffd166; --red:#ff6b6b; --blue:#8ecae6; --purple:#c77dff; --orange:#ff9f1c;
-  --shadow:0 28px 90px rgba(0,0,0,.42); --radius:24px;
+  --bg:#0b0b10; --bg2:#111118; --panel:rgba(22,22,31,.82); --panel2:rgba(30,30,42,.88);
+  --card:#181820; --green:#9b87f5; --green2:#a78bfa; --mint:#ececff; --text:#f7f7fb;
+  --muted:#a4a3b5; --muted2:#737287; --line:rgba(231,231,255,.10); --line2:rgba(167,139,250,.34);
+  --amber:#f6c177; --red:#f87171; --blue:#7dd3fc; --purple:#a78bfa; --orange:#fb923c;
+  --shadow:0 28px 90px rgba(0,0,0,.38); --radius:22px;
 }
 *{box-sizing:border-box} html,body{height:100%}
 body{margin:0;font-family:Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;color:var(--text);background:
-  radial-gradient(circle at 10% 0%,rgba(0,245,138,.18),transparent 34%),
-  radial-gradient(circle at 90% 10%,rgba(100,255,177,.10),transparent 36%),
-  linear-gradient(135deg,#030504 0%,#07130d 42%,#020302 100%);overflow:hidden}
-body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.85),transparent 90%)}
-.app{display:grid;grid-template-rows:auto 1fr;height:100vh;position:relative;z-index:1}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 28px 18px;border-bottom:1px solid var(--line);background:rgba(3,8,5,.78);backdrop-filter:blur(18px)}
-.brand{display:flex;align-items:center;gap:16px;min-width:0}.mark{width:52px;height:52px;border-radius:18px;background:linear-gradient(145deg,rgba(0,245,138,.32),rgba(0,245,138,.04));border:1px solid var(--line2);display:grid;place-items:center;box-shadow:0 0 38px rgba(0,245,138,.25)}
-.mark span{font-size:26px;font-weight:950;color:var(--green);text-shadow:0 0 26px rgba(0,245,138,.72)}.brand h1{margin:0;font-size:24px;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}.brand strong{color:var(--green2)}
-.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.button{border:1px solid var(--line2);background:rgba(255,255,255,.035);color:var(--text);padding:10px 13px;border-radius:14px;cursor:pointer;font-weight:700;transition:.18s;box-shadow:0 12px 35px rgba(0,0,0,.18)}.button:hover{border-color:rgba(0,245,138,.62);transform:translateY(-1px);background:rgba(0,245,138,.09)}.button.primary{background:linear-gradient(135deg,rgba(0,245,138,.22),rgba(100,255,177,.09));color:var(--green2)}
+  radial-gradient(circle at 8% 0%,rgba(124,58,237,.18),transparent 35%),
+  radial-gradient(circle at 92% 8%,rgba(14,165,233,.12),transparent 38%),
+  linear-gradient(135deg,#09090f 0%,#111118 45%,#07070b 100%);overflow:hidden}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.028) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.018) 1px,transparent 1px);background-size:44px 44px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.8),transparent 90%)}
+.app{display:grid;grid-template-rows:auto 1fr;height:100vh;position:relative;z-index:1}.topbar{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:22px 28px 18px;border-bottom:1px solid var(--line);background:rgba(10,10,16,.84);backdrop-filter:blur(18px)}
+.brand{display:flex;align-items:center;gap:16px;min-width:0}.mark{width:52px;height:52px;border-radius:18px;background:linear-gradient(145deg,rgba(124,58,237,.28),rgba(14,165,233,.08));border:1px solid var(--line2);display:grid;place-items:center;box-shadow:0 0 38px rgba(124,58,237,.22)}
+.mark span{font-size:26px;font-weight:950;color:var(--green);text-shadow:0 0 22px rgba(167,139,250,.55)}.brand h1{margin:0;font-size:24px;letter-spacing:-.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.brand p{margin:4px 0 0;color:var(--muted);font-size:13px}.brand strong{color:var(--green2)}
+.top-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}.button{border:1px solid var(--line2);background:rgba(255,255,255,.035);color:var(--text);padding:10px 13px;border-radius:14px;cursor:pointer;font-weight:700;transition:.18s;box-shadow:0 12px 35px rgba(0,0,0,.18)}.button:hover{border-color:rgba(167,139,250,.62);transform:translateY(-1px);background:rgba(124,58,237,.11)}.button.primary{background:linear-gradient(135deg,rgba(124,58,237,.22),rgba(14,165,233,.10));color:var(--green2)}
 .shell{display:grid;grid-template-columns:284px minmax(0,1fr) 346px;gap:18px;padding:18px;overflow:hidden}.sidebar,.inspector,.main{min-height:0}.sidebar,.inspector{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(18px);border-radius:var(--radius);box-shadow:var(--shadow);overflow:auto}.sidebar{padding:14px}.main{overflow:auto;border-radius:var(--radius)}
-.nav-title{padding:10px 10px 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.14em}.tab{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid transparent;background:transparent;color:var(--text);border-radius:16px;padding:13px 14px;cursor:pointer;text-align:left;font-weight:800;margin:4px 0}.tab small{color:var(--muted);font-weight:700}.tab:hover,.tab.active{border-color:var(--line2);background:rgba(0,245,138,.08)}.tab.active{box-shadow:inset 0 0 0 1px rgba(0,245,138,.14);color:var(--green2)}
-.panel{display:none}.panel.active{display:block}.card{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(18px);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}.hero{position:relative;overflow:hidden;padding:30px}.hero::after{content:"";position:absolute;inset:auto -20% -60% 35%;height:260px;background:radial-gradient(circle,rgba(0,245,138,.22),transparent 58%);pointer-events:none}.kicker{color:var(--green2);text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:900}.hero h2{font-size:42px;line-height:1.02;letter-spacing:-.06em;margin:10px 0 10px;max-width:860px}.hero p{color:var(--muted);max-width:820px;font-size:15px;line-height:1.7}.grid{display:grid;gap:14px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.metric{background:linear-gradient(180deg,rgba(20,54,34,.9),rgba(8,20,14,.85));border:1px solid var(--line);border-radius:20px;padding:18px}.metric span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}.metric strong{display:block;font-size:34px;letter-spacing:-.05em;color:var(--green2);margin-top:7px}.section-title{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}.section-title h2{margin:0;font-size:24px;letter-spacing:-.03em}.section-title p{margin:4px 0 0;color:var(--muted)}
-.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid var(--line2);background:rgba(255,255,255,.035);color:var(--mint);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800}.chip.green{background:rgba(0,245,138,.10);color:var(--green2)}.chip.amber{color:var(--amber);border-color:rgba(255,209,102,.3)}
-.canvas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(188px,auto);gap:12px}.block{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(20,48,32,.9),rgba(8,20,14,.82));border:1px solid var(--line);border-radius:20px;padding:16px}.block::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--green),transparent)}.block h3{margin:0 0 10px;color:var(--green2);font-size:14px;text-transform:uppercase;letter-spacing:.08em}.block ul{margin:0;padding-left:18px;color:var(--mint);line-height:1.45}.block li{margin:7px 0}.vp{grid-column:3;grid-row:1/span 2}.segments{grid-column:5;grid-row:1/span 2}.cost{grid-column:1/span 2}.revenue{grid-column:4/span 2}
-.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}.input{width:min(460px,100%);background:rgba(3,8,5,.72);border:1px solid var(--line2);border-radius:15px;color:var(--text);padding:12px 14px;outline:none}.input:focus{border-color:rgba(0,245,138,.65);box-shadow:0 0 0 4px rgba(0,245,138,.08)}.graph-wrap{position:relative;height:680px;background:radial-gradient(circle at 30% 20%,rgba(0,245,138,.09),transparent 40%),#040806;border:1px solid var(--line);border-radius:22px;overflow:hidden}.graph-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}svg.graph{width:100%;height:100%;display:block}.edge{stroke:rgba(148,255,194,.28);stroke-width:1.4}.edge.active{stroke:var(--green);stroke-width:2.4}.node{cursor:grab}.node:active{cursor:grabbing}.node circle{stroke:rgba(230,255,241,.72);stroke-width:1.2;filter:drop-shadow(0 0 12px rgba(0,245,138,.22))}.node text{fill:#f2fff7;font-size:11px;font-weight:800;text-shadow:0 1px 2px #000;pointer-events:none}.node.dim{opacity:.16}.node.hidden-node{display:none}.node.active circle{stroke:var(--green);stroke-width:3;filter:drop-shadow(0 0 22px rgba(0,245,138,.55))}.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.legend-item{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}.dot{width:10px;height:10px;border-radius:999px;background:var(--green)}
-.split{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.list{display:grid;gap:10px}.item{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:18px;padding:14px;cursor:pointer}.item:hover{border-color:var(--line2);background:rgba(0,245,138,.055)}.item h3{margin:0 0 8px;font-size:16px;color:var(--mint)}.item p{margin:6px 0;color:var(--muted);line-height:1.48}.table{width:100%;border-collapse:separate;border-spacing:0 8px}.table th{color:var(--muted);font-size:12px;text-align:left;text-transform:uppercase;letter-spacing:.1em;padding:0 10px}.table td{background:rgba(255,255,255,.025);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 10px;color:var(--mint);font-size:13px}.table td:first-child{border-left:1px solid var(--line);border-radius:14px 0 0 14px}.table td:last-child{border-right:1px solid var(--line);border-radius:0 14px 14px 0}.file-row{cursor:pointer}.file-row:hover td{background:rgba(0,245,138,.06)}
-.inspector{padding:18px}.inspector h2{margin:0 0 12px}.inspect-box{border:1px solid var(--line);background:rgba(3,8,5,.55);border-radius:18px;padding:14px;white-space:pre-wrap;word-break:break-word;color:var(--mint);font-size:12px;line-height:1.55}.inspect-help{color:var(--muted);line-height:1.6}.footer{color:var(--muted2);font-size:12px;margin-top:14px}.pulse{display:inline-block;width:9px;height:9px;border-radius:999px;background:var(--green);box-shadow:0 0 0 0 rgba(0,245,138,.7);animation:pulse 1.8s infinite}@keyframes pulse{70%{box-shadow:0 0 0 10px rgba(0,245,138,0)}}
-@media(max-width:1180px){body{overflow:auto}.app{height:auto}.shell{grid-template-columns:1fr}.sidebar,.inspector{position:relative;max-height:none}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.canvas{grid-template-columns:1fr}.vp,.segments,.cost,.revenue{grid-column:auto;grid-row:auto}.split{grid-template-columns:1fr}.graph-wrap{height:560px}.topbar{align-items:flex-start;flex-direction:column}.brand h1{white-space:normal}.main{overflow:visible}}
+.nav-title{padding:10px 10px 8px;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.14em}.tab{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid transparent;background:transparent;color:var(--text);border-radius:16px;padding:13px 14px;cursor:pointer;text-align:left;font-weight:800;margin:4px 0}.tab small{color:var(--muted);font-weight:700}.tab:hover,.tab.active{border-color:var(--line2);background:rgba(124,58,237,.10)}.tab.active{box-shadow:inset 0 0 0 1px rgba(167,139,250,.16);color:var(--green2)}
+.panel{display:none}.panel.active{display:block}.card{border:1px solid var(--line);background:var(--panel);backdrop-filter:blur(18px);border-radius:var(--radius);box-shadow:var(--shadow);padding:22px;margin-bottom:18px}.hero{position:relative;overflow:hidden;padding:30px}.hero::after{content:"";position:absolute;inset:auto -20% -60% 35%;height:260px;background:radial-gradient(circle,rgba(0,245,138,.22),transparent 58%);pointer-events:none}.kicker{color:var(--green2);text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:900}.hero h2{font-size:42px;line-height:1.02;letter-spacing:-.06em;margin:10px 0 10px;max-width:860px}.hero p{color:var(--muted);max-width:820px;font-size:15px;line-height:1.7}.grid{display:grid;gap:14px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.metric{background:linear-gradient(180deg,rgba(31,31,43,.95),rgba(17,17,24,.9));border:1px solid var(--line);border-radius:20px;padding:18px}.metric span{display:block;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.12em}.metric strong{display:block;font-size:34px;letter-spacing:-.05em;color:var(--green2);margin-top:7px}.section-title{display:flex;align-items:end;justify-content:space-between;gap:20px;margin-bottom:14px}.section-title h2{margin:0;font-size:24px;letter-spacing:-.03em}.section-title p{margin:4px 0 0;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:8px}.chip{border:1px solid var(--line2);background:rgba(255,255,255,.035);color:var(--mint);border-radius:999px;padding:7px 10px;font-size:12px;font-weight:800}.chip.green{background:rgba(124,58,237,.13);color:var(--green2)}.chip.amber{color:var(--amber);border-color:rgba(255,209,102,.3)}
+.canvas{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));grid-auto-rows:minmax(188px,auto);gap:12px}.block{position:relative;overflow:hidden;background:linear-gradient(180deg,rgba(31,31,43,.95),rgba(17,17,24,.9));border:1px solid var(--line);border-radius:20px;padding:16px}.block::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:linear-gradient(90deg,var(--purple),rgba(125,211,252,.3),transparent)}.block h3{margin:0 0 10px;color:var(--green2);font-size:14px;text-transform:uppercase;letter-spacing:.08em}.block ul{margin:0;padding-left:18px;color:var(--mint);line-height:1.45}.block li{margin:7px 0}.vp{grid-column:3;grid-row:1/span 2}.segments{grid-column:5;grid-row:1/span 2}.cost{grid-column:1/span 2}.revenue{grid-column:4/span 2}
+.toolbar{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px}.input{width:min(460px,100%);background:rgba(9,9,15,.78);border:1px solid var(--line2);border-radius:15px;color:var(--text);padding:12px 14px;outline:none}.input:focus{border-color:rgba(167,139,250,.68);box-shadow:0 0 0 4px rgba(124,58,237,.12)}.graph-wrap{position:relative;height:680px;background:radial-gradient(circle at 26% 16%,rgba(124,58,237,.12),transparent 42%),radial-gradient(circle at 80% 35%,rgba(14,165,233,.08),transparent 36%),#0a0a10;border:1px solid var(--line);border-radius:22px;overflow:hidden}.graph-empty{position:absolute;inset:0;display:grid;place-items:center;color:var(--muted)}svg.graph{width:100%;height:100%;display:block}.edge{stroke:rgba(190,180,255,.24);stroke-width:1.4}.edge.active{stroke:var(--purple);stroke-width:2.4}.node{cursor:grab}.node:active{cursor:grabbing}.node circle{stroke:rgba(237,233,254,.72);stroke-width:1.2;filter:drop-shadow(0 0 12px rgba(124,58,237,.20))}.node text{fill:#f2fff7;font-size:11px;font-weight:800;text-shadow:0 1px 2px #000;pointer-events:none}.node.dim{opacity:.16}.node.hidden-node{display:none}.node.active circle{stroke:var(--purple);stroke-width:3;filter:drop-shadow(0 0 22px rgba(124,58,237,.45))}.legend{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}.legend-item{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:12px}.dot{width:10px;height:10px;border-radius:999px;background:var(--green)}
+.split{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}.list{display:grid;gap:10px}.item{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:18px;padding:14px;cursor:pointer}.item:hover{border-color:var(--line2);background:rgba(124,58,237,.08)}.item h3{margin:0 0 8px;font-size:16px;color:var(--mint)}.item p{margin:6px 0;color:var(--muted);line-height:1.48}.table{width:100%;border-collapse:separate;border-spacing:0 8px}.table th{color:var(--muted);font-size:12px;text-align:left;text-transform:uppercase;letter-spacing:.1em;padding:0 10px}.table td{background:rgba(255,255,255,.025);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:12px 10px;color:var(--mint);font-size:13px}.table td:first-child{border-left:1px solid var(--line);border-radius:14px 0 0 14px}.table td:last-child{border-right:1px solid var(--line);border-radius:0 14px 14px 0}.file-row{cursor:pointer}.file-row:hover td{background:rgba(124,58,237,.08)}
+.inspector{padding:18px}.inspector h2{margin:0 0 12px}.inspect-box{border:1px solid var(--line);background:rgba(3,8,5,.55);border-radius:18px;padding:14px;white-space:pre-wrap;word-break:break-word;color:var(--mint);font-size:12px;line-height:1.55}.inspect-help{color:var(--muted);line-height:1.6}.footer{color:var(--muted2);font-size:12px;margin-top:14px}.doc-hero h2{max-width:980px}.doc-grid{grid-template-columns:1.15fr .85fr .9fr}.doc-card h2{font-size:21px}.doc-card p,.doc-card li{color:var(--muted);line-height:1.72}.doc-note{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:16px;padding:12px;margin:10px 0}.doc-note strong{display:block;color:var(--mint);margin-bottom:6px}.doc-note span{color:var(--muted);line-height:1.48}.doc-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}.doc-steps div{border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:18px;padding:16px}.doc-steps strong{display:block;color:var(--mint);margin-bottom:8px}.doc-steps span{color:var(--muted);line-height:1.45}.pulse{display:inline-block;width:9px;height:9px;border-radius:999px;background:var(--purple);box-shadow:0 0 0 0 rgba(167,139,250,.7);animation:pulse 1.8s infinite}@keyframes pulse{70%{box-shadow:0 0 0 10px rgba(167,139,250,0)}}
+@media(max-width:1180px){body{overflow:auto}.app{height:auto}.shell{grid-template-columns:1fr}.sidebar,.inspector{position:relative;max-height:none}.metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.canvas{grid-template-columns:1fr}.vp,.segments,.cost,.revenue{grid-column:auto;grid-row:auto}.split{grid-template-columns:1fr}.doc-grid,.doc-steps{grid-template-columns:1fr}.graph-wrap{height:560px}.topbar{align-items:flex-start;flex-direction:column}.brand h1{white-space:normal}.main{overflow:visible}}
 @media(max-width:620px){.metrics{grid-template-columns:1fr}.hero h2{font-size:32px}.topbar{padding:18px}.shell{padding:12px}.card{padding:16px}.brand{align-items:flex-start}.mark{width:46px;height:46px}}
 </style>
 </head>
@@ -78,7 +78,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
     <div class="brand">
       <div class="mark"><span>G</span></div>
       <div>
-        <h1>Genial Product Map · __PM_AI_TITLE__</h1>
+        <h1>Genial Product OS · __PM_AI_TITLE__</h1>
         <p><strong>Product Management AI</strong> criado por Bruno Costa · eusoubrunocosta.tech · eusoubrunocosta.ai</p>
       </div>
     </div>
@@ -91,7 +91,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
   <div class="shell">
     <aside class="sidebar">
       <div class="nav-title">Produto</div>
-      <button class="tab active" data-panel="overview">Overview <small>Resumo</small></button>
+      <button class="tab active" data-panel="docs">Documentação <small>Aprender</small></button>
+      <button class="tab" data-panel="overview">Overview <small>Resumo</small></button>
       <button class="tab" data-panel="mindmap">Mapa mental <small>Produto</small></button>
       <button class="tab" data-panel="architecture">Arquitetura <small>Grafo</small></button>
       <button class="tab" data-panel="canvas">Business Canvas <small>Modelo</small></button>
@@ -102,7 +103,8 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
       <div class="footer">Clique em cards, linhas e nós para inspecionar. Arraste os nós no grafo. Use scroll para zoom.</div>
     </aside>
     <main class="main">
-      <section class="panel active" id="overview"></section>
+      <section class="panel active" id="docs"></section>
+      <section class="panel" id="overview"></section>
       <section class="panel" id="mindmap"></section>
       <section class="panel" id="architecture"></section>
       <section class="panel" id="canvas"></section>
@@ -135,6 +137,22 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
   function list(items){ return `<ul>${(items || []).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`; }
   function card(title, body, extra='') { return `<div class="card ${extra}"><div class="section-title"><div><h2>${esc(title)}</h2></div></div>${body}</div>`; }
 
+  function renderDocs(){
+    const p = data.project || {};
+    const improvements = data.improvements || [];
+    const layers = data.architecture?.layers || [];
+    const canvas = data.business_canvas || {};
+    $('#docs').innerHTML = `
+      <div class="card hero doc-hero"><div class="kicker">Living product documentation</div><h2>Uma documentação bonita para entender, ensinar e melhorar ${esc(p.name || 'o produto')}.</h2><p>Essa visão foi pensada para PMs, founders, engenharia e pessoas não técnicas. Comece pela narrativa do produto, depois navegue para mapa mental, arquitetura, canvas e arquivos.</p></div>
+      <div class="grid doc-grid">
+        <div class="card doc-card"><div class="kicker">1 · Produto</div><h2>O que este produto parece ser</h2><p>${esc((canvas['Value Propositions'] || ['Produto em análise'])[0])}</p><div class="chips">${(layers || []).slice(0,6).map(x=>chip(x)).join('')}</div></div>
+        <div class="card doc-card"><div class="kicker">2 · Próxima conversa</div><h2>Perguntas para o time</h2><ul><li>Qual problema de usuário este repositório resolve hoje?</li><li>O que precisa ficar óbvio para alguém novo entender em 10 minutos?</li><li>Quais partes são core do produto e quais são suporte?</li><li>Que melhoria geraria valor mais rápido?</li></ul></div>
+        <div class="card doc-card"><div class="kicker">3 · Melhorias</div><h2>O que olhar primeiro</h2>${improvements.slice(0,4).map(i=>`<div class="doc-note"><strong>${esc(i.title)}</strong><span>${esc(i.action)}</span></div>`).join('') || '<p class="inspect-help">Nenhuma melhoria detectada.</p>'}</div>
+      </div>
+      <div class="card"><div class="section-title"><div><h2>Como usar esta tela</h2><p>Use como um caderno de produto interativo.</p></div></div><div class="doc-steps"><div><strong>Mapa mental</strong><span>Entenda o produto sem entrar no código.</span></div><div><strong>Arquitetura</strong><span>Veja arquivos, símbolos e dependências.</span></div><div><strong>Canvas</strong><span>Discuta modelo de negócio e valor.</span></div><div><strong>Arquivos</strong><span>Procure pontos específicos para documentar ou melhorar.</span></div></div></div>
+    `;
+  }
+
   function renderOverview(){
     const p = data.project || {};
     const langs = Object.entries(data.summary?.loc_by_language || {}).sort((a,b)=>b[1]-a[1]).slice(0,10);
@@ -142,9 +160,9 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
     const signals = Object.entries(data.architecture?.signals || {}).sort((a,b)=>b[1]-a[1]).slice(0,12);
     $('#overview').innerHTML = `
       <div class="card hero">
-        <div class="kicker">Product intelligence dashboard</div>
-        <h2>${esc(p.name || 'Produto')} destrinchado como produto, código e negócio.</h2>
-        <p>Uma leitura visual para entender arquitetura, lógica, arquivos, melhorias, riscos e Business Model Canvas. A ideia é servir tanto para uma pessoa leiga quanto para um PM/Tech Lead experiente.</p>
+        <div class="kicker">Product intelligence workspace</div>
+        <h2>${esc(p.name || 'Produto')} organizado como documentação viva, arquitetura e estratégia.</h2>
+        <p>Uma experiência visual para documentar, aprender e tomar decisões. A ideia é transformar qualquer repositório em um mapa de produto compreensível para founder, PM, engenharia e operação.</p>
       </div>
       <div class="grid metrics">
         <div class="metric"><span>Arquivos analisados</span><strong>${fmt(p.files_scanned)}</strong></div>
@@ -307,7 +325,7 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;background-im
     const blob = new Blob([lines.join('\n')], {type:'text/markdown'});
     const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='pm-ai-summary.md'; a.click(); URL.revokeObjectURL(url);
   };
-  renderOverview(); renderCanvas(); renderImprovements(); renderFiles(); renderMindmap(); renderArchitecture(); setPanel('overview');
+  renderDocs(); renderOverview(); renderCanvas(); renderImprovements(); renderFiles(); renderMindmap(); renderArchitecture(); setPanel('docs');
 })();
 </script>
 </body>

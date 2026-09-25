@@ -29,13 +29,13 @@ if (failed === 0) {
     const dataMatch = html.match(/<script id="pm-ai-data" type="application\/json">([\s\S]*?)<\/script>/);
     if (!dataMatch) throw new Error('missing pm-ai-data script');
     JSON.parse(dataMatch[1]);
-    for (const token of ['Genial Product Map', 'data-panel="architecture"', 'id="archGraph"', 'id="inspector"']) {
+    for (const token of ['Genial Product OS', 'Living product documentation', 'data-panel="architecture"', 'id="archGraph"', 'id="inspector"']) {
       if (!html.includes(token)) throw new Error('missing token: ' + token);
     }
     console.log('OK dashboard html validates');
   } catch (error) {
     failed += 1;
-    console.error('? dashboard html validates');
+    console.error('✗ dashboard html validates');
     console.error(error.message);
   }
 }
