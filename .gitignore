@@ -8,3 +8,5 @@ node_modules/
 dist/
 coverage/
 examples/*.generated.md
+*.pyc
+python/**/__pycache__/

@@ -20,3 +20,16 @@ Criar e manter um sistema operacional de Product Management com CLI, skills, pla
 - Rode `npm test`.
 - Rode `npm run doctor`.
 - Explique o que mudou e como validar.
+
+
+## Nova camada visual
+
+O comando `pm-ai analyze-repo` deve continuar funcionando sem dependências externas obrigatórias. Ele precisa gerar JSON, Markdown e HTML standalone.
+
+Ao evoluir o analisador:
+
+- Preserve compatibilidade com Windows, Linux e macOS.
+- Não leia segredos de `.env`.
+- Não envie código para serviços externos sem autorização explícita.
+- Diferencie fatos detectados de hipóteses de negócio.
+- Mantenha o Business Canvas como hipótese validável, não como verdade absoluta.

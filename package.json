@@ -1,7 +1,7 @@
 {
   "name": "product-management-ai",
   "version": "0.1.0",
-  "description": "CLI, skills e playbooks para Product Management AI, discovery, MVP, Scrum, Lean e melhoria continua.",
+  "description": "Star-ready Product Management AI CLI with skills, Python repository analysis, visual maps, Business Canvas, Scrum, Lean and MVP workflows.",
   "type": "module",
   "private": true,
   "bin": {
@@ -10,21 +10,31 @@
   },
   "scripts": {
     "start": "node ./bin/pm-ai.js",
-    "test": "node --test",
+    "test": "node ./scripts/test-runner.mjs",
     "doctor": "node ./bin/pm-ai.js doctor",
     "demo:diagnose": "node ./bin/pm-ai.js diagnose --input examples/sample-brief.md --output examples/sample-diagnosis.generated.md",
-    "link:local": "npm link"
+    "link:local": "npm link",
+    "analyze:self": "node ./bin/pm-ai.js analyze-repo --path . --output .pm-ai/outputs/self-analysis.json --report .pm-ai/outputs/self-analysis.md --visual .pm-ai/outputs/self-dashboard.html",
+    "demo:visual": "node ./bin/pm-ai.js analyze-repo --path examples --output .pm-ai/outputs/demo-analysis.json --report .pm-ai/outputs/demo-analysis.md --visual .pm-ai/outputs/demo-dashboard.html",
+    "python:analyze": "python ./python/pm_ai/repository_analyzer.py --path ."
   },
   "keywords": [
+    "agile",
+    "ai-skills",
+    "architecture-map",
+    "business-model-canvas",
+    "cli",
+    "developer-experience",
+    "lean-startup",
+    "mind-map",
+    "mvp",
+    "obsidian-graph",
+    "product-discovery",
     "product-management",
     "product-manager",
-    "mvp",
-    "lean-startup",
-    "scrum",
-    "agile",
-    "product-discovery",
-    "ai-skills",
-    "cli"
+    "python-analyzer",
+    "repository-analysis",
+    "scrum"
   ],
   "author": "Genial Labs AI",
   "license": "MIT",

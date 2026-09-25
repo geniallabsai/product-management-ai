@@ -8,3 +8,6 @@ test('help works', () => { const result = run(['--help']); assert.equal(result.s
 test('skills list works', () => { const result = run(['skills']); assert.equal(result.status, 0); assert.match(result.stdout, /principal-pm/); });
 test('diagnose works', () => { const result = run(['diagnose','--input','examples/sample-brief.md']); assert.equal(result.status, 0); assert.match(result.stdout, /Diagnóstico Product Management AI/); });
 test('doctor works', () => { const result = run(['doctor']); assert.equal(result.status, 0); assert.match(result.stdout, /Status: \*\*OK\*\*/); });
+
+
+test('analyze-repo works', () => { const result = run(['analyze-repo','--path','examples','--output','.pm-ai/outputs/test-analysis.json','--report','.pm-ai/outputs/test-analysis.md','--visual','.pm-ai/outputs/test-analysis.html']); assert.equal(result.status, 0); assert.match(result.stdout, /\"ok\": true/); });
