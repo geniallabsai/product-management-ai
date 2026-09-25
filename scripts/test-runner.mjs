@@ -44,4 +44,15 @@ if (failed > 0) {
   console.error(`${failed} check(s) failed`);
   process.exit(1);
 }
-console.log(`${checks.length + 1} checks passed`);
+
+try {
+  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js']) {
+    if (!fs.existsSync(file)) throw new Error('missing workspace file: ' + file);
+  }
+  console.log('OK workspace server files validate');
+} catch (error) {
+  console.error('✗ workspace server files validate');
+  console.error(error.message);
+  process.exit(1);
+}
+console.log(`${checks.length + 2} checks passed`);

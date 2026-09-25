@@ -1,0 +1,75 @@
+
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Product Management AI Workspace</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <aside class="sidebar">
+      <div class="brand-row">
+        <div class="brand-mark">G</div>
+        <div>
+          <strong>Genial Product</strong>
+          <span>Workspace</span>
+        </div>
+      </div>
+      <nav class="nav">
+        <button class="nav-item active" data-view="architecture">Arquitetura</button>
+        <button class="nav-item" data-view="overview">Resumo</button>
+        <button class="nav-item" data-view="canvas">Business Canvas</button>
+        <button class="nav-item" data-view="docs">Documentação</button>
+        <button class="nav-item" data-view="improvements">Melhorias</button>
+        <button class="nav-item" data-view="files">Arquivos</button>
+      </nav>
+      <div class="sidebar-note">
+        <b>Como usar</b>
+        <span>Arraste cards, use scroll para zoom, segure e arraste o fundo para navegar.</span>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Product Management AI</p>
+          <h1 id="pageTitle">Analisando produto...</h1>
+        </div>
+        <div class="toolbar">
+          <input id="globalSearch" class="search" placeholder="Buscar arquivo, módulo, tecnologia..." />
+          <select id="density" class="select">
+            <option value="essential">Essencial</option>
+            <option value="product">Produto</option>
+            <option value="code">Código</option>
+            <option value="all">Completo</option>
+          </select>
+          <button id="fitBtn" class="btn">Fit</button>
+          <button id="resetBtn" class="btn primary">Reset</button>
+        </div>
+      </header>
+
+      <section id="view-architecture" class="view active">
+        <div class="canvas-layout">
+          <div class="canvas-panel">
+            <canvas id="mapCanvas"></canvas>
+            <div class="canvas-hint">Canvas real: zoom, pan e cards arrastáveis</div>
+          </div>
+          <aside class="inspector">
+            <h2>Inspector</h2>
+            <div id="inspectorContent" class="empty">Clique em um card para entender função, arquitetura, arquivos e oportunidades.</div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-overview" class="view"></section>
+      <section id="view-canvas" class="view"></section>
+      <section id="view-docs" class="view"></section>
+      <section id="view-improvements" class="view"></section>
+      <section id="view-files" class="view"></section>
+    </main>
+  </div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
