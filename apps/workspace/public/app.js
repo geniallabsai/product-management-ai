@@ -263,13 +263,17 @@ function renderBlueprint(b){
   const stack = (b.stack || []).map(s => `<div class="blueprint-card"><span>stack</span><h3>${esc(s.stage)}</h3><p>${esc((s.stack || []).join(', '))}</p><small>${esc(s.why)}</small></div>`).join('');
   const road = (b.roadmap || []).map(r => `<div class="blueprint-card"><span>roadmap</span><h3>${esc(r.horizon)}</h3><p>${esc((r.actions || []).join(' · '))}</p></div>`).join('');
   const missing = (b.summary?.missing || []).map(x => `<li>${esc(x)}</li>`).join('') || '<li>Nenhuma lacuna crítica óbvia.</li>';
+  const ote = (b.processDiagnostics || []).map(p => `<div class="blueprint-card"><span>OTE</span><h3>${esc(p.process)} · ${esc(p.oteLayer)}</h3><p>${esc((p.failureModes || []).join(', '))}</p><small>${esc(p.aiPlacement)}</small></div>`).join('');
+  const objections = (b.objectionMap || []).map(o => `<div class="blueprint-card objection"><span>objeção/problema</span><h3>${esc(o.title)}</h3><p>${esc((o.rootCause || []).join(', '))}</p><small>${esc(o.productImplication)}</small></div>`).join('');
+  const phases = (b.companyArchitectureMap || []).map(p => `<div class="blueprint-card"><span>fase</span><h3>${esc(p.title)} · ${esc(p.layer)}</h3><p>${esc(p.output)}</p></div>`).join('');
+  const matrices = b.matrices ? `<div class="card"><h2>Matrizes</h2><div class="blueprint-grid"><div class="blueprint-card"><span>SWOT</span><h3>Forças</h3><p>${esc((b.matrices.swot?.strengths || []).join(', '))}</p></div><div class="blueprint-card"><span>SWOT</span><h3>Fraquezas</h3><p>${esc((b.matrices.swot?.weaknesses || []).join(', '))}</p></div><div class="blueprint-card"><span>Eisenhower</span><h3>Urgente/importante</h3><p>${esc((b.matrices.eisenhower?.urgentImportant || []).join(', '))}</p></div><div class="blueprint-card"><span>Priorização</span><h3>Métodos</h3><p>${esc((b.matrices.prioritization || []).join(', '))}</p></div></div></div>` : '';
   return `<div class="provider-note">Modo: ${esc(b.mode)} · Repositório: ${b.summary?.hasRepository ? 'conectado' : 'opcional/não conectado'} · Site: ${b.summary?.hasWebsite ? 'analisado' : 'não informado'}</div>
     <div class="card"><h2>Lacunas antes de construir</h2><ul>${missing}</ul></div>
-    <div class="blueprint-grid">${(b.cards||[]).map(renderCard).join('')}${(b.process||[]).map(renderProcess).join('')}${(b.agents||[]).map(renderAgent).join('')}${(b.systems||[]).map(renderSystem).join('')}${stack}${road}</div>
+    <div class="blueprint-grid">${phases}${objections}${ote}${(b.cards||[]).map(renderCard).join('')}${(b.process||[]).map(renderProcess).join('')}${(b.agents||[]).map(renderAgent).join('')}${(b.systems||[]).map(renderSystem).join('')}${stack}${road}</div>${matrices}
     <div class="card"><h2>Markdown executivo</h2>${markdownLite(b.markdown || '')}</div>`;
 }
 
-function runDossier(){
+async function runDossier(){
   const result = el('dossierResult');
   result.innerHTML = '<p>Mapeando empresa, site, redes, dados, operação, código e maturidade...</p>';
   const body = {

@@ -161,3 +161,15 @@ If there is no product, start with customer, process, value and GTM.
 If there is no process, map the process first.
 If there is no data, define what data must be captured.
 If there is no AI readiness, design a human-in-the-loop path before automation.
+
+
+## Arquitetura de Negócios com IA no mercado brasileiro
+
+O Startup AI OS também considera a linha de raciocínio vista em programas brasileiros de Arquitetura de Negócios com IA, GTM AI Engineering e transformação digital: antes de ferramentas, a empresa precisa redesenhar o sistema de negócios, processos, pessoas, dados e crescimento. Essa visão reforça que IA não é apenas algoritmo; ela depende de pessoas, processos, dados, governança, arquitetura e adoção.
+
+Aplicação no produto:
+
+- Primeiro mapear o sistema de negócio.
+- Depois mapear processos OTE: operacional, tático e estratégico.
+- Só então decidir agentes, automações, stack, produto digital e eventual repositório.
+- Código é evidência técnica, não ponto de partida obrigatório.

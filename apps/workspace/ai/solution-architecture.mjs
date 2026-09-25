@@ -11,6 +11,104 @@ export const SOLUTION_DOMAINS = [
   { id: 'people', label: 'Pessoas, papéis e rituais', owner: 'Operating System Lead' }
 ];
 
+
+
+export const OTE_LAYERS = [
+  { id: 'strategic', label: 'Estratégico', signals: ['estratégia','posicionamento','mercado','direção','meta','visão','decisão','governança'] },
+  { id: 'tactical', label: 'Tático', signals: ['gestão','coordenação','campanha','pipeline','projeto','time','ritual','planejamento','prioridade'] },
+  { id: 'operational', label: 'Operacional', signals: ['atendimento','entrega','suporte','follow-up','cadastro','agenda','financeiro','comercial','produção','execução'] }
+];
+
+export const PROCESS_FAILURE_MODES = [
+  { id: 'missing-process', label: 'Processo inexistente', question: 'A atividade depende de memória, improviso ou pessoa específica?' },
+  { id: 'broken-handoff', label: 'Passagem falha', question: 'Existe quebra entre áreas, pessoas ou sistemas?' },
+  { id: 'no-owner', label: 'Sem dono claro', question: 'Alguém responde pelo resultado desse processo?' },
+  { id: 'no-data', label: 'Sem dados/eventos', question: 'O processo gera dados mensuráveis?' },
+  { id: 'manual-repetition', label: 'Repetição manual', question: 'Existe tarefa repetitiva que uma automação/agente poderia assumir?' },
+  { id: 'decision-latency', label: 'Decisão lenta', question: 'A decisão depende de análise que demora ou fica presa em alguém?' },
+  { id: 'customer-friction', label: 'Fricção para cliente', question: 'O cliente espera, repete informação ou fica sem resposta?' }
+];
+
+function classifyOTE(text) {
+  const source = asText(text).toLowerCase();
+  const ranked = OTE_LAYERS.map(layer => ({
+    ...layer,
+    hits: layer.signals.filter(signal => source.includes(signal)).length
+  })).sort((a, b) => b.hits - a.hits);
+  return ranked[0]?.hits ? ranked[0] : OTE_LAYERS[2];
+}
+
+function inferFailureModes(text) {
+  const source = asText(text).toLowerCase();
+  const modes = [];
+  if (/não tem|sem processo|bagun|manual|improviso|memória|cada um faz/.test(source)) modes.push('missing-process');
+  if (/passa|handoff|transfer|entre áreas|comercial.*operação|marketing.*vendas|vendas.*entrega/.test(source)) modes.push('broken-handoff');
+  if (/ninguém|dono|responsável|culpa|quem/.test(source)) modes.push('no-owner');
+  if (/não mede|sem métrica|sem dado|planilha|não sabe|relatório/.test(source)) modes.push('no-data');
+  if (/repet|copiar|colar|mensagem|follow|cadastro|agenda/.test(source)) modes.push('manual-repetition');
+  if (/demora|lento|aprovação|decisão|espera/.test(source)) modes.push('decision-latency');
+  if (/cliente|lead|aluno|paciente|usuário|atendimento|reclama/.test(source)) modes.push('customer-friction');
+  return [...new Set(modes.length ? modes : ['missing-process','no-data','manual-repetition'])]
+    .map(id => PROCESS_FAILURE_MODES.find(mode => mode.id === id));
+}
+
+function buildProcessDiagnostics(input) {
+  const processes = processCards(input);
+  return processes.map((p, index) => {
+    const text = [p.title, p.problem, asText(input.currentProcesses), asText(input.operations), asText(input.constraints)].join(' ');
+    const layer = classifyOTE(text);
+    const failures = inferFailureModes(text);
+    const aiPlacement = failures.some(f => f.id === 'manual-repetition')
+      ? 'Agente operacional para triagem, follow-up, classificação e execução repetitiva.'
+      : failures.some(f => f.id === 'decision-latency')
+        ? 'Copiloto tático para priorização, alertas e decisão assistida.'
+        : 'Agente analítico para registrar eventos, gerar diagnóstico e apontar gargalos.';
+    return {
+      id: `diagnostic-${index + 1}`,
+      process: p.title,
+      oteLayer: layer.label,
+      failureModes: failures.map(f => f.label),
+      ownerHypothesis: layer.id === 'strategic' ? 'Founder / diretoria' : layer.id === 'tactical' ? 'Gestor / líder da área' : 'Pessoa executora / operação',
+      aiPlacement,
+      requiredData: ['responsável', 'tempo de ciclo', 'status', 'motivo de perda/erro', 'origem', 'próxima ação'],
+      automationCandidate: failures.some(f => ['manual-repetition','customer-friction','decision-latency'].includes(f.id)),
+      nextAction: 'Desenhar SOP, evento de dados, responsável e critério de qualidade antes de automatizar.'
+    };
+  });
+}
+
+function buildObjectionMap(input) {
+  const objections = splitList(input.objections || input.coreProblem || input.constraints || input.currentProcesses);
+  const fallback = [
+    'Não sei por onde começar a transformação digital',
+    'Tenho processos na cabeça das pessoas, não no sistema',
+    'Não sei onde IA realmente ajuda',
+    'Tenho medo de gastar com tecnologia errada',
+    'Não tenho dados confiáveis para decidir',
+    'Meu time não segue processo ou não mede execução'
+  ];
+  return (objections.length ? objections : fallback).slice(0, 12).map((item, index) => ({
+    id: `objection-${index + 1}`,
+    title: item,
+    rootCause: inferFailureModes(item).map(f => f.label),
+    layer: classifyOTE(item).label,
+    response: 'Converter objeção em hipótese validável, processo, dado e experimento curto.',
+    productImplication: 'Virar card de discovery/backlog ou regra de agente antes de virar feature.'
+  }));
+}
+
+function buildCompanyArchitectureMap(input) {
+  return [
+    { id: 'phase-idea', title: 'Ideia / Tese', layer: 'Estratégico', output: 'Tese, PUV, ICP, problema e oportunidade.' },
+    { id: 'phase-discovery', title: 'Discovery', layer: 'Tático', output: 'Entrevistas, jobs, objeções, evidências e decisão de MVP.' },
+    { id: 'phase-process', title: 'Processos', layer: 'Operacional/Tático', output: 'SOP, responsáveis, gargalos, SLAs internos e eventos.' },
+    { id: 'phase-solution', title: 'Solução / Produto', layer: 'Tático/Técnico', output: 'Protótipo, MVP, sistema, integrações, stack e backlog.' },
+    { id: 'phase-gtm', title: 'GTM / Growth', layer: 'Estratégico/Tático', output: 'Oferta, canais, funil, CRM, playbook comercial e loops.' },
+    { id: 'phase-data-ai', title: 'Dados / IA', layer: 'Transversal', output: 'Eventos, dashboards, agentes, automações, scores e governança.' },
+    { id: 'phase-scale', title: 'Escala', layer: 'Estratégico', output: 'Rituais, metas, unit economics, confiabilidade e melhoria contínua.' }
+  ];
+}
+
 const DEFAULT_STACK = {
   noCode: ['Airtable/SmartSuite', 'Notion', 'Make/Zapier/n8n', 'Typeform/Tally', 'Webflow/Framer'],
   product: ['Figma', 'Linear/Jira', 'PostHog', 'Hotjar', 'Storybook'],
@@ -130,6 +228,9 @@ export function generateSolutionArchitecture(input = {}, repoAnalysis = null, we
   const agents = agentCards(input);
   const systems = systemCards(input);
   const stack = stackRecommendations(input);
+  const processDiagnostics = buildProcessDiagnostics(input);
+  const objectionMap = buildObjectionMap(input);
+  const companyArchitectureMap = buildCompanyArchitectureMap(input);
   const repoCard = repoAnalysis ? {
     connected: true,
     files: repoAnalysis.project?.files_scanned || 0,
@@ -160,12 +261,19 @@ export function generateSolutionArchitecture(input = {}, repoAnalysis = null, we
     domains: SOLUTION_DOMAINS,
     cards,
     process,
+    processDiagnostics,
+    objectionMap,
+    companyArchitectureMap,
     agents,
     systems,
     stack,
     roadmap: roadmap(input),
     repo: repoCard,
     matrices: {
+      ote: {
+        layers: OTE_LAYERS.map(layer => layer.label),
+        diagnostics: processDiagnostics
+      },
       swot: {
         strengths: ['Conhecimento do negócio pode virar sistema replicável', 'Possibilidade de conectar físico e digital'],
         weaknesses: missing.slice(0, 3),
@@ -180,10 +288,10 @@ export function generateSolutionArchitecture(input = {}, repoAnalysis = null, we
       },
       prioritization: ['MoSCoW para escopo', 'ICE para experimentos', 'RICE quando houver alcance', 'Kanban para execução diária', 'Scrum quando houver time de produto/engenharia']
     },
-    markdown: renderArchitectureMarkdown({ input, repoAnalysis, webSnapshots, missing, process, agents, systems, stack })
+    markdown: renderArchitectureMarkdown({ input, repoAnalysis, webSnapshots, missing, process, agents, systems, stack, processDiagnostics, objectionMap, companyArchitectureMap })
   };
 }
 
-function renderArchitectureMarkdown({ input, repoAnalysis, webSnapshots, missing, process, agents, systems, stack }) {
-  return `# Arquitetura Startup AI OS · ${input.companyName || 'Empresa / Ideia'}\n\n## Leitura central\n\nAntes de olhar para código, o sistema precisa entender a arquitetura do negócio: processos, pessoas, canais, dados, ferramentas, gargalos, cliente, oferta e operação. Repositório é opcional: se existir, ele entra como evidência técnica; se não existir, primeiro desenhamos a solução.\n\n## Repositório\n\n${repoAnalysis ? `Código conectado: ${repoAnalysis.project?.files_scanned || 0} arquivos, ${repoAnalysis.project?.total_lines || 0} linhas.` : 'Nenhum repositório conectado. Caminho recomendado: arquitetar negócio → processos → produto digital → MVP → repositório.'}\n\n## Site / redes\n\n${webSnapshots.length ? webSnapshots.map(s => `- ${s.url}: ${s.title || 'sem título'}`).join('\n') : 'Nenhum site/rede analisado ainda. Quando informado, entra como evidência de posicionamento, oferta, autoridade e funil.'}\n\n## Lacunas críticas\n\n${missing.map(x => `- ${x}`).join('\n') || '- Sem lacunas críticas óbvias.'}\n\n## Processos prioritários\n\n${process.map(p => `- **${p.title}**: ${p.problem}`).join('\n')}\n\n## Onde entram agentes de IA\n\n${agents.map(a => `- **${a.title}** em ${a.where}: ${a.jobs.join(', ')}.`).join('\n')}\n\n## Sistemas a construir/conectar\n\n${systems.map(s => `- **${s.title}**: ${s.purpose}`).join('\n')}\n\n## Stack sugerida\n\n${stack.map(s => `- **${s.stage}**: ${s.stack.join(', ')}. Motivo: ${s.why}`).join('\n')}\n`;
+function renderArchitectureMarkdown({ input, repoAnalysis, webSnapshots, missing, process, agents, systems, stack, processDiagnostics, objectionMap, companyArchitectureMap }) {
+  return `# Arquitetura Startup AI OS · ${input.companyName || 'Empresa / Ideia'}\n\n## Leitura central\n\nAntes de olhar para código, o sistema precisa entender a arquitetura do negócio: processos, pessoas, canais, dados, ferramentas, gargalos, cliente, oferta e operação. Repositório é opcional: se existir, ele entra como evidência técnica; se não existir, primeiro desenhamos a solução.\n\n## Repositório\n\n${repoAnalysis ? `Código conectado: ${repoAnalysis.project?.files_scanned || 0} arquivos, ${repoAnalysis.project?.total_lines || 0} linhas.` : 'Nenhum repositório conectado. Caminho recomendado: arquitetar negócio → processos → produto digital → MVP → repositório.'}\n\n## Site / redes\n\n${webSnapshots.length ? webSnapshots.map(s => `- ${s.url}: ${s.title || 'sem título'}`).join('\n') : 'Nenhum site/rede analisado ainda. Quando informado, entra como evidência de posicionamento, oferta, autoridade e funil.'}\n\n## Lacunas críticas\n\n${missing.map(x => `- ${x}`).join('\n') || '- Sem lacunas críticas óbvias.'}\n\n## Mapa OTE de processos\n\n${processDiagnostics.map(p => `- **${p.process}** · ${p.oteLayer}: ${p.failureModes.join(', ')}. IA: ${p.aiPlacement}`).join('\n')}\n\n## Mapa de objeções/problemas\n\n${objectionMap.map(o => `- **${o.title}** (${o.layer}): causa provável: ${o.rootCause.join(', ')}.`).join('\n')}\n\n## Fases da arquitetura da empresa\n\n${companyArchitectureMap.map(p => `- **${p.title}** · ${p.layer}: ${p.output}`).join('\n')}\n\n## Processos prioritários\n\n${process.map(p => `- **${p.title}**: ${p.problem}`).join('\n')}\n\n## Onde entram agentes de IA\n\n${agents.map(a => `- **${a.title}** em ${a.where}: ${a.jobs.join(', ')}.`).join('\n')}\n\n## Sistemas a construir/conectar\n\n${systems.map(s => `- **${s.title}**: ${s.purpose}`).join('\n')}\n\n## Stack sugerida\n\n${stack.map(s => `- **${s.stage}**: ${s.stack.join(', ')}. Motivo: ${s.why}`).join('\n')}\n`;
 }
