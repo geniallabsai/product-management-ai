@@ -33,3 +33,16 @@ Node fica responsável pelo CLI, distribuição npm e experiência do desenvolve
 - Detecção de fluxos de usuário e jornadas.
 - Importação para Obsidian como notas e grafo.
 - Comparação entre versões para mostrar evolução do produto.
+
+
+## Dashboard V2
+
+A visualiza??o HTML foi redesenhada para ser uma ferramenta real de explora??o de produto:
+
+- Navega??o lateral por Overview, Mapa Mental, Arquitetura, Business Canvas, Melhorias e Arquivos.
+- Inspector fixo para explicar o n?, arquivo ou item selecionado.
+- Grafo SVG standalone com zoom, pan, drag and drop e busca.
+- Business Model Canvas em grid visual para discuss?o estrat?gica.
+- Exporta??o r?pida de um resumo Markdown pelo pr?prio dashboard.
+
+O HTML ? standalone e n?o depende de CDN, servidor ou internet.

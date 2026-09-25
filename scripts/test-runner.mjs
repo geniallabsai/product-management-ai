@@ -1,4 +1,5 @@
 import { spawnSync } from 'node:child_process';
+import fs from 'node:fs';
 
 const checks = [
   { name: 'help works', args: ['--help'], match: /Product Management AI CLI/ },
@@ -21,8 +22,26 @@ for (const check of checks) {
   }
 }
 
+
+if (failed === 0) {
+  try {
+    const html = fs.readFileSync('.pm-ai/outputs/test-analysis.html', 'utf8');
+    const dataMatch = html.match(/<script id="pm-ai-data" type="application\/json">([\s\S]*?)<\/script>/);
+    if (!dataMatch) throw new Error('missing pm-ai-data script');
+    JSON.parse(dataMatch[1]);
+    for (const token of ['Genial Product Map', 'data-panel="architecture"', 'id="archGraph"', 'id="inspector"']) {
+      if (!html.includes(token)) throw new Error('missing token: ' + token);
+    }
+    console.log('OK dashboard html validates');
+  } catch (error) {
+    failed += 1;
+    console.error('? dashboard html validates');
+    console.error(error.message);
+  }
+}
+
 if (failed > 0) {
   console.error(`${failed} check(s) failed`);
   process.exit(1);
 }
-console.log(`${checks.length} checks passed`);
+console.log(`${checks.length + 1} checks passed`);

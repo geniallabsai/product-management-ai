@@ -21,6 +21,11 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
+try:
+    from .dashboard import render_dashboard_html
+except ImportError:  # direct script execution
+    from dashboard import render_dashboard_html
+
 IGNORE_DIRS = {
     ".git", "node_modules", "dist", "build", ".next", ".nuxt", ".turbo", ".cache",
     "coverage", "__pycache__", ".venv", "venv", "env", ".idea", ".vscode",
@@ -408,46 +413,7 @@ def render_markdown(data: dict[str, Any]) -> str:
 
 
 def render_html(data: dict[str, Any]) -> str:
-    payload = html.escape(json.dumps(data, ensure_ascii=False))
-    title = html.escape(data["project"]["name"])
-    template = """<!doctype html>
-<html lang="pt-BR">
-<head>
-<meta charset="utf-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Product Management AI Dashboard - __TITLE__</title>
-<style>
-:root{--bg:#07110c;--panel:#0f1b14;--panel2:#14281d;--green:#00ff88;--soft:#a7f3d0;--text:#eefcf4;--muted:#9db7a8;--line:#234634;--warn:#ffd166}
-*{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,Segoe UI,Arial,sans-serif;background:radial-gradient(circle at top left,#143821,#07110c 42%);color:var(--text)}
-header{padding:28px 32px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:3;backdrop-filter:blur(14px);background:rgba(7,17,12,.86)}
-.brand{display:flex;align-items:center;gap:16px}.logo{color:var(--green);font-weight:900;font-size:34px;letter-spacing:-1px;text-shadow:0 0 24px rgba(0,255,136,.45)}.subtitle{color:var(--muted);margin-top:4px}.pill{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:6px 10px;color:var(--soft);background:rgba(0,255,136,.08);margin:4px}
-main{display:grid;grid-template-columns:280px 1fr 330px;gap:18px;padding:18px}nav,aside,section.card{background:rgba(15,27,20,.92);border:1px solid var(--line);border-radius:22px;box-shadow:0 24px 80px rgba(0,0,0,.25)}
-nav{padding:14px;height:calc(100vh - 126px);position:sticky;top:104px}button.tab{width:100%;text-align:left;background:transparent;color:var(--text);border:1px solid transparent;padding:12px;border-radius:14px;cursor:pointer;margin:3px 0}button.tab.active,button.tab:hover{border-color:var(--green);background:rgba(0,255,136,.08)}.content{min-width:0}.card{padding:20px;margin-bottom:18px}.grid{display:grid;gap:12px}.metrics{grid-template-columns:repeat(4,minmax(0,1fr))}.metric{background:var(--panel2);border:1px solid var(--line);border-radius:18px;padding:16px}.metric strong{display:block;font-size:28px;color:var(--green)}h1,h2,h3{margin:0 0 12px}h2{color:var(--soft)}.muted{color:var(--muted)}
-.canvas{display:grid;grid-template-columns:repeat(5,1fr);grid-auto-rows:minmax(150px,auto);gap:10px}.block{background:linear-gradient(180deg,#12281b,#0c1811);border:1px solid var(--line);border-radius:16px;padding:14px}.block h3{color:var(--green);font-size:15px}.block ul{padding-left:18px}.vp{grid-column:3;grid-row:1/span 2}.seg{grid-column:5;grid-row:1/span 2}.cost{grid-column:1/span 2}.rev{grid-column:4/span 2}
-#graph,#mindmap{width:100%;min-height:640px;background:#06100b;border:1px solid var(--line);border-radius:18px;overflow:hidden}.node{cursor:pointer}.node circle{stroke:#d1fae5;stroke-width:1}.node text{fill:#eafff3;font-size:11px;pointer-events:none}.edge{stroke:#315c42;stroke-opacity:.72}.search{width:100%;padding:12px 14px;border-radius:14px;border:1px solid var(--line);background:#07110c;color:var(--text);margin:0 0 12px}aside{padding:18px;height:calc(100vh - 126px);position:sticky;top:104px;overflow:auto}.list-item{padding:12px;border:1px solid var(--line);border-radius:14px;margin:8px 0;background:rgba(255,255,255,.02)}pre{white-space:pre-wrap;word-break:break-word;background:#07110c;border:1px solid var(--line);padding:12px;border-radius:14px;color:#c9ffe0}.hidden{display:none}a{color:var(--green)}@media(max-width:1100px){main{grid-template-columns:1fr}nav,aside{position:relative;height:auto;top:0}.metrics{grid-template-columns:repeat(2,1fr)}.canvas{grid-template-columns:1fr}.vp,.seg,.cost,.rev{grid-column:auto;grid-row:auto}}
-</style>
-</head>
-<body>
-<header><div class="brand"><div class="logo">Genial</div><div><h1>Product Management AI</h1><div class="subtitle">Visual repository intelligence by Bruno Costa ? eusoubrunocosta.tech ? eusoubrunocosta.ai</div></div></div></header>
-<main><nav><button class="tab active" data-view="overview">Overview</button><button class="tab" data-view="mind">Mapa mental</button><button class="tab" data-view="architecture">Grafo de arquitetura</button><button class="tab" data-view="canvas">Business Canvas</button><button class="tab" data-view="improvements">Melhorias</button><button class="tab" data-view="files">Arquivos</button></nav><div class="content"><section id="overview" class="card view"></section><section id="mind" class="card view hidden"><h2>Mapa mental do produto</h2><div id="mindmap"></div></section><section id="architecture" class="card view hidden"><h2>Grafo de arquitetura</h2><input id="graphSearch" class="search" placeholder="Filtrar n?, arquivo, depend?ncia..."/><div id="graph"></div></section><section id="canvas" class="card view hidden"></section><section id="improvements" class="card view hidden"></section><section id="files" class="card view hidden"></section></div><aside><h2>Inspector</h2><div id="inspector" class="muted">Clique em um n? do grafo para ver detalhes.</div></aside></main>
-<script id="analysis-data" type="application/json">__PAYLOAD__</script>
-<script>
-const data=JSON.parse(document.getElementById('analysis-data').textContent);const $=q=>document.querySelector(q);const esc=v=>String(v??'').replace(/[&<>]/g,s=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[s]));
-document.querySelectorAll('.tab').forEach(btn=>btn.onclick=()=>{document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));btn.classList.add('active');document.querySelectorAll('.view').forEach(v=>v.classList.add('hidden'));$('#'+btn.dataset.view).classList.remove('hidden');if(btn.dataset.view==='architecture')drawGraph();if(btn.dataset.view==='mind')drawMind();});
-function list(items){return '<ul>'+(items||[]).map(i=>'<li>'+esc(i)+'</li>').join('')+'</ul>'}
-function overview(){const langs=Object.entries(data.summary.loc_by_language||{}).slice(0,8).map(([k,v])=>`<span class="pill">${esc(k)} ? ${v} lines</span>`).join('');$('#overview').innerHTML=`<h2>Resumo executivo</h2><div class="grid metrics"><div class="metric"><strong>${data.project.files_scanned}</strong><span>arquivos</span></div><div class="metric"><strong>${data.project.total_lines}</strong><span>linhas</span></div><div class="metric"><strong>${data.graph.nodes.length}</strong><span>n?s</span></div><div class="metric"><strong>${data.improvements.length}</strong><span>melhorias</span></div></div><h3>Camadas detectadas</h3><p>${data.architecture.layers.map(x=>`<span class="pill">${esc(x)}</span>`).join('')}</p><h3>Linguagens</h3><p>${langs}</p><h3>Riscos</h3>${data.risks.length?list(data.risks):'<p class="muted">Nenhum risco cr?tico inferido automaticamente.</p>'}`}
-function canvas(){const c=data.business_canvas;const block=(cls,title,items)=>`<div class="block ${cls}"><h3>${title}</h3>${list(items)}</div>`;$('#canvas').innerHTML=`<h2>Business Model Canvas inferido</h2><p class="muted">Hip?tese autom?tica. Valide com usu?rios, stakeholders e dados reais.</p><div class="canvas">${block('','Key Partners',c['Key Partners'])}${block('','Key Activities',c['Key Activities'])}${block('vp','Value Propositions',c['Value Propositions'])}${block('','Customer Relationships',c['Customer Relationships'])}${block('seg','Customer Segments',c['Customer Segments'])}${block('','Key Resources',c['Key Resources'])}${block('','Channels',c['Channels'])}${block('cost','Cost Structure',c['Cost Structure'])}${block('rev','Revenue Streams',c['Revenue Streams'])}</div>`}
-function improvements(){$('#improvements').innerHTML='<h2>Melhorias recomendadas</h2>'+data.improvements.map(i=>`<div class="list-item"><h3>${esc(i.title)}</h3><p><span class="pill">${esc(i.area)}</span></p><p><b>Por qu?:</b> ${esc(i.why)}</p><p><b>A??o:</b> ${esc(i.action)}</p></div>`).join('')}
-function files(){$('#files').innerHTML='<h2>Arquivos analisados</h2><input id="fileSearch" class="search" placeholder="Buscar arquivo..."/> <div id="fileList"></div>';const render=()=>{const q=($('#fileSearch').value||'').toLowerCase();$('#fileList').innerHTML=data.files.filter(f=>f.path.toLowerCase().includes(q)).slice(0,250).map(f=>`<div class="list-item"><b>${esc(f.path)}</b><p class="muted">${esc(f.language)} ? ${f.lines} lines ? ${esc((f.tags||[]).join(', '))}</p></div>`).join('')};$('#fileSearch').oninput=render;render()}
-function inspect(item){$('#inspector').innerHTML=`<pre>${esc(JSON.stringify(item,null,2))}</pre>`}function drawGraph(){drawNetwork('#graph',data.graph.nodes,data.graph.edges,$('#graphSearch')?.value||'')}
-function drawMind(){const nodes=[{id:'product',label:data.project.name,type:'product',group:'product'},{id:'business',label:'Business',group:'business'},{id:'architecture',label:'Architecture',group:'architecture'},{id:'quality',label:'Quality',group:'quality'},{id:'growth',label:'Growth',group:'growth'}];const edges=[{source:'product',target:'business'},{source:'product',target:'architecture'},{source:'product',target:'quality'},{source:'product',target:'growth'}];(data.business_canvas['Value Propositions']||[]).slice(0,5).forEach((v,i)=>{nodes.push({id:'vp'+i,label:v,group:'value'});edges.push({source:'business',target:'vp'+i})});data.architecture.layers.forEach((v,i)=>{nodes.push({id:'layer'+i,label:v,group:'layer'});edges.push({source:'architecture',target:'layer'+i})});data.improvements.slice(0,6).forEach((v,i)=>{nodes.push({id:'imp'+i,label:v.title,group:'improvement'});edges.push({source:'quality',target:'imp'+i})});drawNetwork('#mindmap',nodes,edges,'')}
-function drawNetwork(selector,nodes,edges,filter){const box=document.querySelector(selector);const w=box.clientWidth||900,h=640,q=(filter||'').toLowerCase();const visible=nodes.filter(n=>!q||JSON.stringify(n).toLowerCase().includes(q));const ids=new Set(visible.map(n=>n.id));const shownEdges=edges.filter(e=>ids.has(e.source)&&ids.has(e.target));const center={x:w/2,y:h/2};const angleStep=Math.PI*2/Math.max(visible.length-1,1);const placed=new Map();visible.forEach((n,i)=>{if(i===0)placed.set(n.id,center);else{const r=120+(i%5)*58,a=i*angleStep;placed.set(n.id,{x:center.x+Math.cos(a)*r,y:center.y+Math.sin(a)*r})}});const edgeSvg=shownEdges.map(e=>{const s=placed.get(e.source),t=placed.get(e.target);if(!s||!t)return'';return`<line class="edge" x1="${s.x}" y1="${s.y}" x2="${t.x}" y2="${t.y}"/>`}).join('');const nodeSvg=visible.map(n=>{const p=placed.get(n.id);const radius=n.type==='project'||n.type==='product'?28:18;const color=n.group==='dependency'?'#ffd166':n.group==='ai'?'#8ecae6':n.group==='backend'?'#90be6d':n.group==='frontend'?'#f9844a':'#00ff88';return`<g class="node" data-id="${esc(n.id)}" transform="translate(${p.x},${p.y})"><circle r="${radius}" fill="${color}" fill-opacity=".22"></circle><text x="${radius+5}" y="4">${esc(n.label).slice(0,42)}</text></g>`}).join('');box.innerHTML=`<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}">${edgeSvg}${nodeSvg}</svg>`;box.querySelectorAll('.node').forEach(el=>el.onclick=()=>inspect(visible.find(n=>n.id===el.dataset.id)))}
-$('#graphSearch')?.addEventListener('input',drawGraph);overview();canvas();improvements();files();
-</script>
-</body>
-</html>"""
-    return template.replace("__PAYLOAD__", payload).replace("__TITLE__", title)
-
+    return render_dashboard_html(data)
 
 def write_outputs(data: dict[str, Any], output: Path, report: Path | None, visual: Path | None) -> None:
     output.parent.mkdir(parents=True, exist_ok=True)

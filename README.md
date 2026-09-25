@@ -32,6 +32,25 @@ pm-ai --help
 node ./bin/pm-ai.js --help
 node ./bin/pm-ai.js diagnose --input examples/sample-brief.md --output examples/sample-diagnosis.generated.md
 
+
+
+## Dashboard visual interativo
+
+O comando `pm-ai analyze-repo` agora gera uma experi?ncia visual premium em HTML standalone:
+
+- Overview executivo do produto.
+- Mapa mental interativo inspirado em grafos de conhecimento.
+- Grafo de arquitetura com busca, zoom, pan, drag and drop e inspector.
+- Business Model Canvas inferido automaticamente.
+- Lista naveg?vel de arquivos, linguagens, tags e sinais arquiteturais.
+- Recomenda??es de melhoria para PM, engenharia, growth e opera??o.
+
+Exemplo:
+
+```bash
+pm-ai analyze-repo --path . --visual .pm-ai/outputs/dashboard.html
+```
+
 ## Comandos principais
 
 - `pm-ai init` cria workspace e Product Brief.
