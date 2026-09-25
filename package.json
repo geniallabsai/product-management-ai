@@ -17,8 +17,9 @@
     "analyze:self": "node ./bin/pm-ai.js analyze-repo --path . --output .pm-ai/outputs/self-analysis.json --report .pm-ai/outputs/self-analysis.md --visual .pm-ai/outputs/self-dashboard.html",
     "demo:visual": "node ./bin/pm-ai.js analyze-repo --path examples --output .pm-ai/outputs/demo-analysis.json --report .pm-ai/outputs/demo-analysis.md --visual .pm-ai/outputs/demo-dashboard.html",
     "python:analyze": "python ./python/pm_ai/repository_analyzer.py --path .",
-    "serve": "node ./apps/workspace/server.mjs --path . --open",
-    "serve:no-open": "node ./apps/workspace/server.mjs --path ."
+    "serve": "node ./bin/pm-ai.js serve --path .",
+    "serve:no-open": "node ./apps/workspace/server.mjs --path .",
+    "serve:open": "node ./bin/pm-ai.js serve --path . --open"
   },
   "keywords": [
     "agile",

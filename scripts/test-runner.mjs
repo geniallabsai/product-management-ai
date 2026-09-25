@@ -49,10 +49,16 @@ try {
   for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js']) {
     if (!fs.existsSync(file)) throw new Error('missing workspace file: ' + file);
   }
+  const serverText = fs.readFileSync('apps/workspace/server.mjs', 'utf8');
+  const appText = fs.readFileSync('apps/workspace/public/app.js', 'utf8');
+  const htmlText = fs.readFileSync('apps/workspace/public/index.html', 'utf8');
+  for (const token of ['/api/git','/api/events','/api/file']) if (!serverText.includes(token)) throw new Error('missing server endpoint: ' + token);
+  for (const token of ['graph3dCanvas','draw3d','renderActivity','openFile']) if (!appText.includes(token) && !htmlText.includes(token)) throw new Error('missing workspace feature: ' + token);
   console.log('OK workspace server files validate');
+  console.log('OK workspace graph and git endpoints validate');
 } catch (error) {
   console.error('✗ workspace server files validate');
   console.error(error.message);
   process.exit(1);
 }
-console.log(`${checks.length + 2} checks passed`);
+console.log(`${checks.length + 3} checks passed`);

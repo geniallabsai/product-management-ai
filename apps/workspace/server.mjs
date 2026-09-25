@@ -32,6 +32,17 @@ function contentType(file) {
   }[ext] || 'application/octet-stream';
 }
 
+function run(command, args, cwd = targetPath) {
+  const result = spawnSync(command, args, { cwd, encoding: 'utf8' });
+  if (result.status !== 0) return null;
+  return String(result.stdout || '').trim();
+}
+
+function json(res, payload, status = 200) {
+  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+  res.end(JSON.stringify(payload, null, 2));
+}
+
 function runAnalyzer(targetPath) {
   const outDir = path.join(repoRoot, '.pm-ai', 'outputs');
   fs.mkdirSync(outDir, { recursive: true });
@@ -39,9 +50,9 @@ function runAnalyzer(targetPath) {
   const report = path.join(outDir, 'workspace-server-report.md');
   const visual = path.join(outDir, 'workspace-server-static.html');
   const script = path.join(repoRoot, 'python', 'pm_ai', 'repository_analyzer.py');
-  const args = [script, '--path', targetPath, '--output', output, '--report', report, '--visual', visual, '--max-files', '3000'];
-  let result = spawnSync('python', args, { cwd: repoRoot, encoding: 'utf8' });
-  if (result.status !== 0) result = spawnSync('python3', args, { cwd: repoRoot, encoding: 'utf8' });
+  const analyzerArgs = [script, '--path', targetPath, '--output', output, '--report', report, '--visual', visual, '--max-files', '3000'];
+  let result = spawnSync('python', analyzerArgs, { cwd: repoRoot, encoding: 'utf8' });
+  if (result.status !== 0) result = spawnSync('python3', analyzerArgs, { cwd: repoRoot, encoding: 'utf8' });
   if (result.status !== 0) {
     const detail = `${result.stdout || ''}\n${result.stderr || ''}`.trim();
     throw new Error(detail || 'Repository analyzer failed');
@@ -60,13 +71,44 @@ try {
   process.exit(1);
 }
 
+function gitActivity() {
+  const isRepo = run('git', ['rev-parse', '--is-inside-work-tree']);
+  if (isRepo !== 'true') {
+    return { ok: false, reason: 'Target path is not a Git repository', commits: [], status: [], branch: null, remotes: [] };
+  }
+  const branch = run('git', ['branch', '--show-current']) || '(detached)';
+  const statusText = run('git', ['status', '--short']) || '';
+  const remoteText = run('git', ['remote', '-v']) || '';
+  const logText = run('git', ['log', '--date=iso-strict', '--pretty=format:%H%x1f%h%x1f%an%x1f%ad%x1f%s', '--name-only', '-n', '18']) || '';
+  const blocks = logText.split(/\n(?=[0-9a-f]{40}\x1f)/).filter(Boolean);
+  const commits = blocks.map(block => {
+    const lines = block.split('\n').filter(Boolean);
+    const [hash, short, author, date, subject] = (lines.shift() || '').split('\x1f');
+    return { hash, short, author, date, subject, files: lines.filter(line => !line.includes('\x1f')).slice(0, 40) };
+  }).filter(c => c.hash);
+  return {
+    ok: true,
+    branch,
+    status: statusText.split('\n').filter(Boolean).map(line => ({ code: line.slice(0, 2).trim(), path: line.slice(3) })),
+    remotes: remoteText.split('\n').filter(Boolean),
+    commits,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function safeReadFile(queryPath) {
+  if (!queryPath) return { ok: false, error: 'missing path' };
+  const requested = path.resolve(targetPath, queryPath);
+  if (!requested.startsWith(targetPath)) return { ok: false, error: 'path outside target' };
+  if (!fs.existsSync(requested) || fs.statSync(requested).isDirectory()) return { ok: false, error: 'file not found' };
+  const stat = fs.statSync(requested);
+  if (stat.size > 512_000) return { ok: false, error: 'file too large for preview' };
+  return { ok: true, path: path.relative(targetPath, requested), size: stat.size, content: fs.readFileSync(requested, 'utf8').slice(0, 20000) };
+}
+
 const server = http.createServer((req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
-  if (url.pathname === '/api/health') {
-    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8' });
-    res.end(JSON.stringify({ ok: true, targetPath, repoRoot }));
-    return;
-  }
+  if (url.pathname === '/api/health') return json(res, { ok: true, targetPath, repoRoot });
   if (url.pathname === '/api/analysis') {
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
     fs.createReadStream(analysisFiles.output).pipe(res);
@@ -75,6 +117,29 @@ const server = http.createServer((req, res) => {
   if (url.pathname === '/api/report') {
     res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8', 'cache-control': 'no-store' });
     fs.createReadStream(analysisFiles.report).pipe(res);
+    return;
+  }
+  if (url.pathname === '/api/git') return json(res, gitActivity());
+  if (url.pathname === '/api/file') return json(res, safeReadFile(url.searchParams.get('path')));
+  if (url.pathname === '/api/events') {
+    res.writeHead(200, {
+      'content-type': 'text/event-stream; charset=utf-8',
+      'cache-control': 'no-store',
+      connection: 'keep-alive'
+    });
+    const send = (name, payload) => res.write(`event: ${name}\ndata: ${JSON.stringify(payload)}\n\n`);
+    send('hello', { ok: true, targetPath, at: new Date().toISOString() });
+    let lastHead = run('git', ['rev-parse', 'HEAD']) || null;
+    const interval = setInterval(() => {
+      const head = run('git', ['rev-parse', 'HEAD']) || null;
+      if (head && head !== lastHead) {
+        lastHead = head;
+        send('git', gitActivity());
+      } else {
+        send('heartbeat', { at: new Date().toISOString(), branch: gitActivity().branch });
+      }
+    }, 5000);
+    req.on('close', () => clearInterval(interval));
     return;
   }
 

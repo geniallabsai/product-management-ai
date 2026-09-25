@@ -19,6 +19,8 @@
       </div>
       <nav class="nav">
         <button class="nav-item active" data-view="architecture">Arquitetura</button>
+        <button class="nav-item" data-view="graph3d">Mapa 3D</button>
+        <button class="nav-item" data-view="activity">Versões</button>
         <button class="nav-item" data-view="overview">Resumo</button>
         <button class="nav-item" data-view="canvas">Business Canvas</button>
         <button class="nav-item" data-view="docs">Documentação</button>
@@ -26,8 +28,8 @@
         <button class="nav-item" data-view="files">Arquivos</button>
       </nav>
       <div class="sidebar-note">
-        <b>Como usar</b>
-        <span>Arraste cards, use scroll para zoom, segure e arraste o fundo para navegar.</span>
+        <b>Product Intelligence</b>
+        <span>PM vê valor, arquitetura, versões, riscos e evolução. Deploy/infra profunda fica para o futuro DevOps OS.</span>
       </div>
     </aside>
 
@@ -63,6 +65,20 @@
         </div>
       </section>
 
+      <section id="view-graph3d" class="view">
+        <div class="canvas-layout">
+          <div class="canvas-panel">
+            <canvas id="graph3dCanvas"></canvas>
+            <div class="canvas-hint">Mapa mental 3D: arraste para girar, scroll para zoom, clique para abrir detalhes/código</div>
+          </div>
+          <aside class="inspector">
+            <h2>Graph Inspector</h2>
+            <div id="graphInspector" class="empty">Clique em um ponto do grafo 3D.</div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="view-activity" class="view"></section>
       <section id="view-overview" class="view"></section>
       <section id="view-canvas" class="view"></section>
       <section id="view-docs" class="view"></section>
