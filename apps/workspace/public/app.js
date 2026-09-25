@@ -14,7 +14,7 @@ const colors = { project:'#9b8cff', product:'#9b8cff', frontend:'#57d5ff', backe
 async function boot() {
   const [analysis, git] = await Promise.all([fetch('/api/analysis', { cache: 'no-store' }).then(r=>r.json()), fetch('/api/git', { cache:'no-store' }).then(r=>r.json()).catch(()=>null)]);
   state.data = analysis; state.git = git;
-  el('pageTitle').textContent = state.data.project?.name || 'Product workspace';
+  el('pageTitle').textContent = state.data.project?.name || 'Startup workspace';
   bindShell(); renderAll(); showView('architecture'); bindEvents();
 }
 function bindShell(){

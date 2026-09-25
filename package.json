@@ -1,10 +1,12 @@
 {
-  "name": "product-management-ai",
+  "name": "startup-ai-os",
   "version": "0.1.0",
-  "description": "Star-ready Product Management AI CLI with skills, Python repository analysis, visual maps, Business Canvas, Scrum, Lean and MVP workflows.",
+  "description": "Startup AI OS: operating system for building, auditing, digitizing and scaling companies with business, product, engineering, DevOps, MLOps, data, growth and operations.",
   "type": "module",
   "private": true,
   "bin": {
+    "startup-ai": "./bin/pm-ai.js",
+    "startup-os": "./bin/pm-ai.js",
     "pm-ai": "./bin/pm-ai.js",
     "product-management-ai": "./bin/pm-ai.js"
   },
@@ -19,17 +21,23 @@
     "python:analyze": "python ./python/pm_ai/repository_analyzer.py --path .",
     "serve": "node ./bin/pm-ai.js serve --path .",
     "serve:no-open": "node ./apps/workspace/server.mjs --path .",
-    "serve:open": "node ./bin/pm-ai.js serve --path . --open"
+    "serve:open": "node ./bin/pm-ai.js serve --path . --open",
+    "demo:startup-stack": "node ./bin/pm-ai.js startup-stack"
   },
   "keywords": [
     "agile",
     "ai-skills",
     "architecture-map",
+    "business-canvas",
     "business-model-canvas",
     "cli",
+    "company-os",
     "developer-experience",
+    "devops",
+    "digital-transformation",
     "lean-startup",
     "mind-map",
+    "mlops",
     "mvp",
     "obsidian-graph",
     "product-discovery",
@@ -37,7 +45,14 @@
     "product-manager",
     "python-analyzer",
     "repository-analysis",
-    "scrum"
+    "scrum",
+    "startup-ai",
+    "startup-os",
+    "technology-company",
+    "traditional-business-transformation",
+    "unique-value-proposition",
+    "value-proposition",
+    "venture-studio"
   ],
   "author": "Genial Labs AI",
   "license": "MIT",

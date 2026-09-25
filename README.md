@@ -1,94 +1,60 @@
-# Product Management AI
+# Startup AI OS
 
-**Genial Labs AI · Bruno Costa · eusoubrunocosta.tech · eusoubrunocosta.ai**
+**Startup AI OS** é um sistema operacional para criar, auditar, digitalizar e escalar empresas com uma stack completa de negócio, produto, engenharia, dados, IA, DevOps, MLOps, growth e operação.
 
-Um sistema operacional de produto para quem quer sair de ideia, código solto ou produto confuso e chegar em clareza, MVP, roadmap, arquitetura, canvas e melhoria contínua. Criado para conectar visão de negócio, Product Management, engenharia e IA.
+Ele nasceu como Product Management AI, mas o escopo evoluiu: o objetivo agora é replicar a estrutura de uma empresa de tecnologia moderna para dois cenários:
 
-Product Management AI é um produto independente: um sistema operacional de Product Management com CLI npm, skills, playbooks e templates para analisar, prototipar, validar, lançar MVPs e melhorar produtos existentes.
+1. **Criar empresas de tecnologia do zero**, com metodologia de startup, MVP, discovery, PRD, arquitetura, dados, GTM, growth e operação.
+2. **Transformar empresas tradicionais**, trazendo processos físicos para o digital, criando produtos, automações, dados, IA e rotinas de melhoria contínua.
 
-Ele foi desenhado para dois públicos ao mesmo tempo:
-
-1. Pessoa leiga que tem uma ideia e precisa de caminho guiado para chegar a um MVP validável.
-2. Product Manager experiente que quer acelerar discovery, PRD, roadmap, métricas, backlog, Scrum, Lean, growth e melhoria contínua.
+O antigo nome Product Management AI continua como camada interna de produto. O produto maior agora é o **Startup AI OS**.
 
 ## O que vem no repositório
 
-- CLI `pm-ai` em Node.js, sem dependências externas.
-- Skills independentes para Codex, Claude Code, ChatGPT ou agentes próprios.
-- Playbooks de Discovery, Product Audit, MVP Sprint, Roadmap, Scrum e Lean Experiment.
-- Templates de PRD, Lean Canvas, entrevista, métricas, roadmap, sprint, retrospectiva e backlog.
-- Documentação para iniciantes, PMs seniores e agentes de engenharia.
+- CLI `startup-ai` com alias compatível `pm-ai`.
+- App local em Node: `startup-ai serve --path .`.
+- Product Intelligence Graph com mapa 3D, leitura de código, Git e versões.
+- Business Model Canvas, Value Proposition Canvas, PV, PUV e oferta.
+- Stack completa de empresa: Strategy, Product, UX, Engineering, Data/AI/MLOps, DevOps, Growth, Ops, Finance/Legal e People.
+- Skills independentes para agentes como Codex, Claude Code, ChatGPT ou agentes próprios.
+- Playbooks para discovery, MVP, roadmap, Scrum, Lean, growth, operação e transformação digital.
+- Templates para PRD, Lean Canvas, Business Canvas, PUV, PV, backlog, métricas, experimentos e operating model.
 
 ## Instalação local
 
+```bash
 cd "C:\Users\WINDOWS\OneDrive\Apps\Product Management AI"
 npm install
 npm test
 npm link
-pm-ai --help
+startup-ai --help
+```
 
-## Sem instalar globalmente
-
-node ./bin/pm-ai.js --help
-node ./bin/pm-ai.js diagnose --input examples/sample-brief.md --output examples/sample-diagnosis.generated.md
-
-
-
-## Dashboard visual interativo
-
-O comando `pm-ai analyze-repo` agora gera uma experi?ncia visual premium em HTML standalone:
-
-- Overview executivo do produto.
-- Mapa mental interativo inspirado em grafos de conhecimento.
-- Grafo de arquitetura com busca, zoom, pan, drag and drop e inspector.
-- Business Model Canvas inferido automaticamente.
-- Lista naveg?vel de arquivos, linguagens, tags e sinais arquiteturais.
-- Recomenda??es de melhoria para PM, engenharia, growth e opera??o.
-
-Exemplo:
+## Rodar o app visual
 
 ```bash
-pm-ai analyze-repo --path . --visual .pm-ai/outputs/dashboard.html
+startup-ai serve --path .
+```
+
+Depois abra o endereço que aparecer no terminal, normalmente:
+
+```text
+http://127.0.0.1:4738
 ```
 
 ## Comandos principais
 
-- `pm-ai init` cria workspace e Product Brief.
-- `pm-ai team` lista a equipe de produto AI.
-- `pm-ai skills` lista skills disponíveis.
-- `pm-ai skill principal-pm` imprime uma skill específica.
-- `pm-ai workflows` lista playbooks executáveis.
-- `pm-ai diagnose --input PRODUCT_BRIEF.md --output product-diagnosis.md` gera diagnóstico.
-- `pm-ai run mvp-sprint --input PRODUCT_BRIEF.md --output mvp-plan.md` executa um workflow.
-- `pm-ai template prd --output PRD.md` copia template.
-
-## Time de produto incluído
-
-- Principal Product Manager
-- Product Discovery Lead
-- MVP Architect
-- UX Researcher
-- Product Designer
-- Product Data Analyst
-- Agile Coach / Scrum Master
-- Growth PM
-- Tech Lead Liaison
-- Product Ops
-- Team Orchestrator
-
-## Fluxo recomendado
-
-1. Rode `pm-ai init`.
-2. Preencha `PRODUCT_BRIEF.md`.
-3. Rode diagnóstico.
-4. Rode discovery.
-5. Reduza escopo com MVP Sprint.
-6. Gere PRD e backlog.
-7. Use as skills específicas para aprofundar cada etapa.
+- `startup-ai startup-stack` lista a stack completa da empresa.
+- `startup-ai serve --path .` abre o workspace visual.
+- `startup-ai analyze-repo --path .` analisa um repositório.
+- `startup-ai diagnose --input PRODUCT_BRIEF.md` gera diagnóstico.
+- `startup-ai run mvp-sprint --input PRODUCT_BRIEF.md` cria plano de MVP.
+- `startup-ai template startup-canvas --output STARTUP_CANVAS.md` copia template.
+- `pm-ai ...` continua funcionando como alias antigo.
 
 ## Estado atual
 
-Produto local e privado para validação. O `package.json` está com `private: true` para evitar publicação acidental no npm.
+Produto privado/local para validação. `private: true` continua ativo para evitar publicação acidental no npm enquanto o Startup AI OS amadurece.
 
 
 ## Análise visual de repositórios

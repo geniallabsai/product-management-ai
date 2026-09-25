@@ -110,10 +110,25 @@ const server = http.createServer((req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
   if (url.pathname === '/api/health') return json(res, { ok: true, targetPath, repoRoot });
   if (url.pathname === '/api/analysis') {
+    const analysis = JSON.parse(fs.readFileSync(analysisFiles.output, 'utf8'));
+    analysis.project = analysis.project || {};
+    analysis.project.source_name = analysis.project.name;
+    analysis.project.name = 'Startup AI OS';
+    analysis.project.product_name = 'Startup AI OS';
+    analysis.project.scope = 'Business, product, engineering, DevOps, MLOps, data, growth and operations';
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
-    fs.createReadStream(analysisFiles.output).pipe(res);
+    res.end(JSON.stringify(analysis));
     return;
   }
+
+  if (url.pathname === '/api/startup-stack') {
+    const stackPath = path.join(repoRoot, 'lib', 'startup-stack.js');
+    const content = fs.readFileSync(stackPath, 'utf8');
+    res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+    res.end(JSON.stringify({ ok: true, source: 'lib/startup-stack.js', content }));
+    return;
+  }
+
   if (url.pathname === '/api/report') {
     res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8', 'cache-control': 'no-store' });
     fs.createReadStream(analysisFiles.report).pipe(res);
@@ -157,7 +172,7 @@ const server = http.createServer((req, res) => {
 
 server.listen(args.port, '127.0.0.1', () => {
   const url = `http://127.0.0.1:${args.port}`;
-  console.log('Product Management AI Workspace running');
+  console.log('Startup AI OS Workspace running');
   console.log(url);
   console.log(`Analyzing: ${targetPath}`);
   if (args.open) {

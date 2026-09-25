@@ -1,4 +1,4 @@
-"""Standalone professional workspace renderer for Product Management AI."""
+"""Standalone professional workspace renderer for Startup AI OS."""
 from __future__ import annotations
 
 import datetime as _dt
@@ -41,7 +41,7 @@ DASHBOARD_HTML = r"""<!doctype html>
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Genial Product Workspace · __PM_AI_TITLE__</title>
+<title>Genial Startup Workspace · __PM_AI_TITLE__</title>
 <style>
 :root{
   --bg:#0c0d10; --surface:#111318; --surface2:#171a22; --card:#1c2029; --card2:#222735;
@@ -67,7 +67,7 @@ button,input,select{font:inherit}.app{height:100vh;display:grid;grid-template-co
 <body>
 <div class="app">
   <header class="top">
-    <div class="brand"><div class="logo">G</div><div><h1>Genial Product Workspace · __PM_AI_TITLE__</h1><p>Product Management AI · Bruno Costa · eusoubrunocosta.tech · eusoubrunocosta.ai</p></div></div>
+    <div class="brand"><div class="logo">G</div><div><h1>Genial Startup Workspace · __PM_AI_TITLE__</h1><p>Startup AI OS · Bruno Costa · eusoubrunocosta.tech · eusoubrunocosta.ai</p></div></div>
     <div class="actions"><button class="btn" id="btnExport">Exportar resumo</button><button class="btn" id="btnJson">JSON</button><button class="btn primary" id="btnReset">Reset visual</button></div>
   </header>
   <aside class="side">
@@ -168,7 +168,7 @@ button,input,select{font:inherit}.app{height:100vh;display:grid;grid-template-co
   function renderCanvas(){ const c=data.business_canvas||{}; const block=(cls,title,items)=>`<div class="canvasBlock ${cls}" data-title="${esc(title)}"><h3>${esc(title)}</h3>${list(items)}</div>`; $('#canvas').innerHTML=`<div class="hero"><div class="eyebrow">Business model canvas</div><h2>Hipótese de negócio do produto.</h2><p>Use como canvas de conversa. Clique em cada bloco para abrir no inspector.</p></div><div class="card"><div class="canvasGrid">${block('', 'Key Partners', c['Key Partners'])}${block('', 'Key Activities', c['Key Activities'])}${block('vp','Value Propositions',c['Value Propositions'])}${block('', 'Customer Relationships', c['Customer Relationships'])}${block('segments','Customer Segments',c['Customer Segments'])}${block('', 'Key Resources', c['Key Resources'])}${block('', 'Channels', c['Channels'])}${block('cost','Cost Structure',c['Cost Structure'])}${block('revenue','Revenue Streams',c['Revenue Streams'])}</div></div>`; $$('.canvasBlock').forEach(el=>el.onclick=()=>inspect(el.dataset.title,c[el.dataset.title]||[])); }
   function renderImprovements(){ const items=data.improvements||[]; $('#improvements').innerHTML=`<div class="hero"><div class="eyebrow">Product opportunities</div><h2>Melhorias transformáveis em PRD, sprint ou experimento.</h2></div><div class="card"><div class="list">${items.map((x,i)=>`<div class="item" data-i="${i}"><h3>${esc(x.title)}</h3><div class="chips">${chip(x.area||'Produto','accent')}</div><p><strong>Por quê:</strong> ${esc(x.why)}</p><p><strong>Ação:</strong> ${esc(x.action)}</p></div>`).join('')||'<p class="inspectText">Nenhuma melhoria detectada.</p>'}</div></div>`; $$('.item', $('#improvements')).forEach(el=>el.onclick=()=>inspect('Melhoria',items[Number(el.dataset.i)])); }
   function renderFiles(){ const files=data.files||[]; $('#files').innerHTML=`<div class="hero"><div class="eyebrow">Repository browser</div><h2>Arquivos analisados.</h2><p>Busque e clique para entender cada arquivo.</p></div><div class="card"><div class="toolbar"><input id="fileSearch" class="input" placeholder="Buscar arquivo, linguagem, tag..."/><span class="chip cyan">${fmt(files.length)} arquivos</span></div><div id="fileTable"></div></div>`; const draw=()=>{const q=($('#fileSearch').value||'').toLowerCase();const rows=files.filter(f=>JSON.stringify(f).toLowerCase().includes(q)).slice(0,350);$('#fileTable').innerHTML=`<table class="table"><thead><tr><th>Arquivo</th><th>Linguagem</th><th>Linhas</th><th>Tags</th></tr></thead><tbody>${rows.map(f=>`<tr class="fileRow" data-path="${esc(f.path)}"><td>${esc(f.path)}</td><td>${esc(f.language)}</td><td>${fmt(f.lines)}</td><td>${esc((f.tags||[]).join(', '))}</td></tr>`).join('')}</tbody></table>`; $$('.fileRow').forEach(r=>r.onclick=()=>inspect('Arquivo',files.find(f=>f.path===r.dataset.path)||r.dataset.path));}; $('#fileSearch').oninput=draw; draw(); }
-  $('#btnJson').onclick=()=>inspect('JSON completo',data); $('#btnReset').onclick=()=>{state.arch.nodes=new Map();state.mind.nodes=new Map();state.arch.tx=24;state.arch.ty=24;state.arch.scale=.86;state.mind.tx=40;state.mind.ty=40;state.mind.scale=1; if($('#arch').classList.contains('active')) renderArch(); if($('#mind').classList.contains('active')) renderMind(); inspect('Reset','Layout reiniciado.');}; $('#btnExport').onclick=()=>{const lines=[`# ${data.project?.name||'Produto'} · Product Management AI`,'',`Arquivos: ${fmt(data.project?.files_scanned)}`,`Linhas: ${fmt(data.project?.total_lines)}`,'','## Melhorias',...(data.improvements||[]).map(x=>`- ${x.title}: ${x.action}`)];const blob=new Blob([lines.join('\n')],{type:'text/markdown'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pm-ai-summary.md';a.click();URL.revokeObjectURL(url);};
+  $('#btnJson').onclick=()=>inspect('JSON completo',data); $('#btnReset').onclick=()=>{state.arch.nodes=new Map();state.mind.nodes=new Map();state.arch.tx=24;state.arch.ty=24;state.arch.scale=.86;state.mind.tx=40;state.mind.ty=40;state.mind.scale=1; if($('#arch').classList.contains('active')) renderArch(); if($('#mind').classList.contains('active')) renderMind(); inspect('Reset','Layout reiniciado.');}; $('#btnExport').onclick=()=>{const lines=[`# ${data.project?.name||'Produto'} · Startup AI OS`,'',`Arquivos: ${fmt(data.project?.files_scanned)}`,`Linhas: ${fmt(data.project?.total_lines)}`,'','## Melhorias',...(data.improvements||[]).map(x=>`- ${x.title}: ${x.action}`)];const blob=new Blob([lines.join('\n')],{type:'text/markdown'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download='pm-ai-summary.md';a.click();URL.revokeObjectURL(url);};
   renderDocs(); renderCanvas(); renderImprovements(); renderFiles(); renderArch(); renderMind(); setPanel('docs');
 })();
 </script>

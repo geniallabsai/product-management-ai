@@ -2,8 +2,9 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 
 const checks = [
-  { name: 'help works', args: ['--help'], match: /Product Management AI CLI/ },
+  { name: 'help works', args: ['--help'], match: /Startup AI OS CLI/ },
   { name: 'skills list works', args: ['skills'], match: /principal-pm/ },
+  { name: 'startup-stack works', args: ['startup-stack'], match: /Startup AI OS Stack/ },
   { name: 'diagnose works', args: ['diagnose', '--input', 'examples/sample-brief.md'], match: /Diagnóstico Product Management AI/ },
   { name: 'doctor works', args: ['doctor'], match: /Status: \*\*OK\*\*/ },
   { name: 'analyze-repo works', args: ['analyze-repo', '--path', 'examples', '--output', '.pm-ai/outputs/test-analysis.json', '--report', '.pm-ai/outputs/test-analysis.md', '--visual', '.pm-ai/outputs/test-analysis.html'], match: /"ok": true/ }
@@ -29,7 +30,7 @@ if (failed === 0) {
     const dataMatch = html.match(/<script id="pm-ai-data" type="application\/json">([\s\S]*?)<\/script>/);
     if (!dataMatch) throw new Error('missing pm-ai-data script');
     JSON.parse(dataMatch[1]);
-    for (const token of ['Genial Product Workspace', 'data-panel="arch"', 'id="archBoard"', 'id="inspector"']) {
+    for (const token of ['Genial Startup Workspace', 'data-panel="arch"', 'id="archBoard"', 'id="inspector"']) {
       if (!html.includes(token)) throw new Error('missing token: ' + token);
     }
     console.log('OK dashboard html validates');
@@ -46,7 +47,7 @@ if (failed > 0) {
 }
 
 try {
-  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js']) {
+  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js','lib/startup-stack.js','docs/startup-ai-os.md']) {
     if (!fs.existsSync(file)) throw new Error('missing workspace file: ' + file);
   }
   const serverText = fs.readFileSync('apps/workspace/server.mjs', 'utf8');
