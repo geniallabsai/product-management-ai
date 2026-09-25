@@ -22,7 +22,9 @@
     "serve": "node ./bin/pm-ai.js serve --path .",
     "serve:no-open": "node ./apps/workspace/server.mjs --path .",
     "serve:open": "node ./bin/pm-ai.js serve --path . --open",
-    "demo:startup-stack": "node ./bin/pm-ai.js startup-stack"
+    "demo:startup-stack": "node ./bin/pm-ai.js startup-stack",
+    "django:check": "python -m py_compile apps/django_startup_os/diagnostics/services/process_analyzer.py apps/django_startup_os/mlops/services/ml_decision.py apps/django_startup_os/projects/services/kanban_builder.py apps/django_startup_os/manage.py",
+    "django:serve": "cd apps/django_startup_os && python manage.py runserver 127.0.0.1:8000"
   },
   "keywords": [
     "agile",

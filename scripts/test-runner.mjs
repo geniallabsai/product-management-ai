@@ -53,7 +53,7 @@ if (failed > 0) {
 }
 
 try {
-  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js','lib/startup-stack.js','docs/startup-ai-os.md','apps/workspace/ai/providers.mjs','apps/workspace/ai/consulting.mjs','apps/workspace/ai/solution-architecture.mjs','docs/idea-lab-ai-providers.md','docs/consulting-dossier.md','docs/foundational-methods.md']) {
+  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js','lib/startup-stack.js','docs/startup-ai-os.md','apps/workspace/ai/providers.mjs','apps/workspace/ai/consulting.mjs','apps/workspace/ai/solution-architecture.mjs','docs/idea-lab-ai-providers.md','docs/consulting-dossier.md','apps/django_startup_os/requirements.txt','apps/django_startup_os/manage.py','apps/django_startup_os/startup_os/settings.py','docs/django-stack-migration.md','docs/foundational-methods.md']) {
     if (!fs.existsSync(file)) throw new Error('missing workspace file: ' + file);
   }
   const serverText = fs.readFileSync('apps/workspace/server.mjs', 'utf8');
@@ -68,4 +68,21 @@ try {
   console.error(error.message);
   process.exit(1);
 }
-console.log(`${checks.length + 3} checks passed`);
+
+try {
+  const pyFiles = [
+    'apps/django_startup_os/diagnostics/services/process_analyzer.py',
+    'apps/django_startup_os/mlops/services/ml_decision.py',
+    'apps/django_startup_os/projects/services/kanban_builder.py',
+    'apps/django_startup_os/manage.py'
+  ];
+  const py = spawnSync('python', ['-m', 'py_compile', ...pyFiles], { encoding: 'utf8' });
+  if (py.status !== 0) throw new Error((py.stdout || '') + (py.stderr || ''));
+  console.log('OK django python services validate');
+} catch (error) {
+  console.error('✗ django python services validate');
+  console.error(error.message);
+  process.exit(1);
+}
+
+console.log(`${checks.length + 4} checks passed`);
