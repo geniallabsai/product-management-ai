@@ -1,0 +1,10 @@
+node_modules/
+.pm-ai/outputs/*
+!.pm-ai/outputs/.gitkeep
+.DS_Store
+*.log
+.env
+.env.*
+dist/
+coverage/
+examples/*.generated.md

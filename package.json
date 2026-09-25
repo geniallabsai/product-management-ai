@@ -1,0 +1,34 @@
+{
+  "name": "product-management-ai",
+  "version": "0.1.0",
+  "description": "CLI, skills e playbooks para Product Management AI, discovery, MVP, Scrum, Lean e melhoria continua.",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "pm-ai": "./bin/pm-ai.js",
+    "product-management-ai": "./bin/pm-ai.js"
+  },
+  "scripts": {
+    "start": "node ./bin/pm-ai.js",
+    "test": "node --test",
+    "doctor": "node ./bin/pm-ai.js doctor",
+    "demo:diagnose": "node ./bin/pm-ai.js diagnose --input examples/sample-brief.md --output examples/sample-diagnosis.generated.md",
+    "link:local": "npm link"
+  },
+  "keywords": [
+    "product-management",
+    "product-manager",
+    "mvp",
+    "lean-startup",
+    "scrum",
+    "agile",
+    "product-discovery",
+    "ai-skills",
+    "cli"
+  ],
+  "author": "Genial Labs AI",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  }
+}

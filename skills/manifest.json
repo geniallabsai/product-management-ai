@@ -1,0 +1,56 @@
+{
+  "name": "Product Management AI",
+  "version": "0.1.0",
+  "skills": [
+    {
+      "id": "principal-pm",
+      "title": "Principal PM Hard Mode",
+      "path": "skills/principal-pm/skill.md"
+    },
+    {
+      "id": "discovery-lead",
+      "title": "Product Discovery Lead",
+      "path": "skills/discovery-lead/skill.md"
+    },
+    {
+      "id": "mvp-architect",
+      "title": "MVP Architect",
+      "path": "skills/mvp-architect/skill.md"
+    },
+    {
+      "id": "ux-researcher",
+      "title": "UX Researcher",
+      "path": "skills/ux-researcher/skill.md"
+    },
+    {
+      "id": "data-analyst",
+      "title": "Product Data Analyst",
+      "path": "skills/data-analyst/skill.md"
+    },
+    {
+      "id": "agile-coach",
+      "title": "Agile Coach",
+      "path": "skills/agile-coach/skill.md"
+    },
+    {
+      "id": "growth-pm",
+      "title": "Growth PM",
+      "path": "skills/growth-pm/skill.md"
+    },
+    {
+      "id": "tech-liaison",
+      "title": "Tech Lead Liaison",
+      "path": "skills/tech-liaison/skill.md"
+    },
+    {
+      "id": "product-ops",
+      "title": "Product Ops",
+      "path": "skills/product-ops/skill.md"
+    },
+    {
+      "id": "team-orchestrator",
+      "title": "Product Team Orchestrator",
+      "path": "skills/team-orchestrator/skill.md"
+    }
+  ]
+}
