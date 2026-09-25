@@ -10,3 +10,8 @@ coverage/
 examples/*.generated.md
 *.pyc
 python/**/__pycache__/
+
+.startup-ai/ai-secrets.json
+.startup-ai/local.json
+.startup-ai/*.secret.json
+.startup-ai/

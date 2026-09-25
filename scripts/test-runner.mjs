@@ -47,16 +47,16 @@ if (failed > 0) {
 }
 
 try {
-  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js','lib/startup-stack.js','docs/startup-ai-os.md']) {
+  for (const file of ['apps/workspace/server.mjs','apps/workspace/public/index.html','apps/workspace/public/styles.css','apps/workspace/public/app.js','lib/startup-stack.js','docs/startup-ai-os.md','apps/workspace/ai/providers.mjs','apps/workspace/ai/consulting.mjs','docs/idea-lab-ai-providers.md','docs/consulting-dossier.md']) {
     if (!fs.existsSync(file)) throw new Error('missing workspace file: ' + file);
   }
   const serverText = fs.readFileSync('apps/workspace/server.mjs', 'utf8');
   const appText = fs.readFileSync('apps/workspace/public/app.js', 'utf8');
   const htmlText = fs.readFileSync('apps/workspace/public/index.html', 'utf8');
-  for (const token of ['/api/git','/api/events','/api/file']) if (!serverText.includes(token)) throw new Error('missing server endpoint: ' + token);
-  for (const token of ['graph3dCanvas','draw3d','renderActivity','openFile']) if (!appText.includes(token) && !htmlText.includes(token)) throw new Error('missing workspace feature: ' + token);
+  for (const token of ['/api/git','/api/events','/api/file','/api/ai/providers','/api/idea-lab','/api/company-dossier','/api/repository/analyze-path']) if (!serverText.includes(token)) throw new Error('missing server endpoint: ' + token);
+  for (const token of ['graph3dCanvas','draw3d','renderActivity','openFile','renderIdeaLab','renderDossier','runIdeaLab','runDossier']) if (!appText.includes(token) && !htmlText.includes(token)) throw new Error('missing workspace feature: ' + token);
   console.log('OK workspace server files validate');
-  console.log('OK workspace graph and git endpoints validate');
+  console.log('OK workspace graph, git, AI and dossier endpoints validate');
 } catch (error) {
   console.error('✗ workspace server files validate');
   console.error(error.message);

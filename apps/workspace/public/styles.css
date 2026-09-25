@@ -77,3 +77,14 @@ pre { margin:0; padding:12px; border-radius:12px; background:#0b0d11; color:#d9d
   .cards { grid-template-columns: 1fr; } .card.span-4, .card.span-6, .card.span-8 { grid-column: 1 / -1; }
   .canvas-grid { grid-template-columns: 1fr; } .canvas-block.value, .canvas-block.segment, .canvas-block.wide { grid-column: auto; grid-row: auto; }
 }
+
+.textarea { width: 100%; min-height: 78px; resize: vertical; background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 12px; padding: 11px 12px; outline: none; margin: 7px 0 12px; }
+.textarea.big { min-height: 150px; }
+.input.wide, .select.wide { width: 100%; margin: 7px 0 12px; }
+.stack-form label, #view-idea label { display: block; font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-top: 6px; }
+.help-text { font-size: 12px; color: var(--muted); }
+.idea-result { min-height: 220px; }
+.markdown-result { line-height: 1.65; color: var(--soft); }
+.markdown-result h1, .markdown-result h2, .markdown-result h3 { color: var(--text); margin: 18px 0 8px; }
+.markdown-result ul { padding-left: 22px; }
+.provider-note { display: inline-flex; margin-bottom: 12px; border: 1px solid var(--line); border-radius: 999px; padding: 7px 10px; color: var(--muted); background: rgba(255,255,255,.035); }

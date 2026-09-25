@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { spawn, spawnSync } from 'node:child_process';
+import { PROVIDERS, readAIConfig, saveAIConfig, runIdeaLab } from './ai/providers.mjs';
+import { generateCompanyDossier } from './ai/consulting.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +21,26 @@ function parseArgs(argv) {
     else if (arg === '--port') args.port = Number(argv[++i] || 4738);
   }
   return args;
+}
+
+function sendJson(res, status, payload) {
+  res.writeHead(status, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
+  res.end(JSON.stringify(payload));
+}
+
+function readJsonBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    req.on('data', chunk => {
+      body += chunk;
+      if (body.length > 2_000_000) reject(new Error('Request body too large'));
+    });
+    req.on('end', () => {
+      if (!body.trim()) return resolve({});
+      try { resolve(JSON.parse(body)); } catch (error) { reject(error); }
+    });
+    req.on('error', reject);
+  });
 }
 
 function contentType(file) {
@@ -106,7 +128,7 @@ function safeReadFile(queryPath) {
   return { ok: true, path: path.relative(targetPath, requested), size: stat.size, content: fs.readFileSync(requested, 'utf8').slice(0, 20000) };
 }
 
-const server = http.createServer((req, res) => {
+const server = http.createServer(async (req, res) => {
   const url = new URL(req.url || '/', `http://${req.headers.host}`);
   if (url.pathname === '/api/health') return json(res, { ok: true, targetPath, repoRoot });
   if (url.pathname === '/api/analysis') {
@@ -126,6 +148,89 @@ const server = http.createServer((req, res) => {
     const content = fs.readFileSync(stackPath, 'utf8');
     res.writeHead(200, { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' });
     res.end(JSON.stringify({ ok: true, source: 'lib/startup-stack.js', content }));
+    return;
+  }
+
+
+
+  if (url.pathname === '/api/ai/providers') {
+    sendJson(res, 200, { ok: true, providers: PROVIDERS, config: readAIConfig(repoRoot) });
+    return;
+  }
+
+  if (url.pathname === '/api/ai/config') {
+    if (req.method === 'GET') {
+      sendJson(res, 200, { ok: true, providers: PROVIDERS, config: readAIConfig(repoRoot) });
+      return;
+    }
+    if (req.method === 'POST') {
+      try {
+        const body = await readJsonBody(req);
+        const config = saveAIConfig(repoRoot, body);
+        sendJson(res, 200, { ok: true, config });
+      } catch (error) {
+        sendJson(res, 400, { ok: false, error: error.message });
+      }
+      return;
+    }
+    sendJson(res, 405, { ok: false, error: 'GET or POST required' });
+    return;
+  }
+
+  if (url.pathname === '/api/idea-lab') {
+    if (req.method !== 'POST') {
+      sendJson(res, 405, { ok: false, error: 'POST required' });
+      return;
+    }
+    try {
+      const body = await readJsonBody(req);
+      const result = await runIdeaLab(repoRoot, body);
+      sendJson(res, 200, { ok: true, result });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+
+
+  if (url.pathname === '/api/repository/analyze-path') {
+    if (req.method !== 'POST') {
+      sendJson(res, 405, { ok: false, error: 'POST required' });
+      return;
+    }
+    try {
+      const body = await readJsonBody(req);
+      const requestedPath = path.resolve(process.cwd(), body.path || targetPath);
+      const files = runAnalyzer(requestedPath);
+      const analysis = JSON.parse(fs.readFileSync(files.output, 'utf8'));
+      sendJson(res, 200, { ok: true, sourcePath: requestedPath, analysis });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/company-dossier') {
+    if (req.method !== 'POST') {
+      sendJson(res, 405, { ok: false, error: 'POST required' });
+      return;
+    }
+    try {
+      const body = await readJsonBody(req);
+      let repoAnalysis = null;
+      if (body.repositoryPath) {
+        const requestedPath = path.resolve(process.cwd(), body.repositoryPath);
+        const files = runAnalyzer(requestedPath);
+        repoAnalysis = JSON.parse(fs.readFileSync(files.output, 'utf8'));
+      } else if (body.includeCurrentRepository) {
+        repoAnalysis = JSON.parse(fs.readFileSync(analysisFiles.output, 'utf8'));
+      }
+      const dossier = generateCompanyDossier(body, repoAnalysis);
+      sendJson(res, 200, { ok: true, dossier });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
     return;
   }
 

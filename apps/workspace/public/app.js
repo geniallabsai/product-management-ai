@@ -28,7 +28,7 @@ function bindShell(){
   window.addEventListener('resize', () => { drawMap(); draw3d(); });
 }
 function showView(view){ state.view=view; qsa('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view)); qsa('.view').forEach(v=>v.classList.remove('active')); el(`view-${view}`).classList.add('active'); if(view==='architecture') setTimeout(drawMap,30); if(view==='graph3d') setTimeout(draw3d,30); if(view==='activity') renderActivity(); }
-function renderAll(){ renderOverview(); renderCanvas(); renderDocs(); renderImprovements(); renderFiles(); renderActivity(); rebuildMap(true); build3d(true); }
+function renderAll(){ renderIdeaLab(); renderDossier(); renderOverview(); renderCanvas(); renderDocs(); renderImprovements(); renderFiles(); renderActivity(); rebuildMap(true); build3d(true); }
 function bindEvents(){
   if (!window.EventSource) return;
   const source = new EventSource('/api/events');
@@ -36,6 +36,117 @@ function bindEvents(){
   source.addEventListener('git', e => { state.git = JSON.parse(e.data); state.events.unshift({ type:'git', at:new Date().toISOString() }); if(state.view==='activity') renderActivity(); });
 }
 function pill(v){ return `<span class="pill">${esc(v)}</span>`; }
+
+function markdownLite(text){
+  let html = esc(text || '');
+  html = html.replace(/^# (.*)$/gm, '<h1>$1</h1>')
+             .replace(/^## (.*)$/gm, '<h2>$1</h2>')
+             .replace(/^### (.*)$/gm, '<h3>$1</h3>')
+             .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+             .replace(/^\- (.*)$/gm, '<li>$1</li>')
+             .replace(/\n\n/g, '</p><p>')
+             .replace(/\n/g, '<br>');
+  html = html.replace(/(<li>.*?<\/li>)/gs, '<ul>$1</ul>');
+  return `<div class="markdown-result"><p>${html}</p></div>`;
+}
+async function loadAIProviders(){
+  const response = await fetch('/api/ai/providers', { cache:'no-store' });
+  return response.json();
+}
+function renderIdeaLab(){
+  el('view-idea').innerHTML = `<div class="cards">
+    <div class="card span-8"><h2>Idea Lab</h2><p>Converse com agentes de startup, negócio, produto, growth, tecnologia, dados, MLOps, operações e financeiro. Use modo offline ou plugue seu modelo via API Key.</p></div>
+    <div class="card span-4"><h2>Jornada</h2><p>Ideação → Discovery → PV/PUV → Protótipo → MVP → GTM → Operação → Escala.</p></div>
+    <div class="card span-5"><h2>Modelo de IA</h2><div id="aiProviderPanel" class="stack-form"><p>Carregando providers...</p></div></div>
+    <div class="card span-7"><h2>Descreva a ideia</h2>
+      <label>Tipo de empresa</label><select id="companyType" class="select wide"><option value="startup">Startup / empresa de tecnologia</option><option value="traditional-digitalization">Empresa tradicional indo para o digital</option><option value="existing-tech-company">Empresa de tecnologia existente</option><option value="physical-business">Negócio físico com melhoria operacional</option></select>
+      <label>Horizonte</label><select id="ideaHorizon" class="select wide"><option>7 dias</option><option selected>90 dias</option><option>6 meses</option><option>12 meses</option></select>
+      <label>Contexto opcional</label><textarea id="ideaContext" class="textarea" placeholder="Mercado, público, recursos, time, restrições..."></textarea>
+      <label>Ideia</label><textarea id="ideaText" class="textarea big" placeholder="Ex: Quero criar uma plataforma para digitalizar escolas tradicionais com IA, funil, automações e métricas..."></textarea>
+      <button id="runIdeaLab" class="btn primary">Gerar plano Startup AI OS</button>
+    </div>
+    <div class="card span-12"><h2>Resultado</h2><div id="ideaResult" class="idea-result empty">O plano aparecerá aqui com SWOT, PUV, canvas, MVP, Kanban, Scrum, 7/30/90 dias e roadmap.</div></div>
+  </div>`;
+  hydrateProviderPanel();
+  el('runIdeaLab').onclick = runIdeaLab;
+}
+async function hydrateProviderPanel(){
+  try{
+    const payload = await loadAIProviders();
+    const cfg = payload.config || {};
+    const providers = payload.providers || [];
+    el('aiProviderPanel').innerHTML = `<label>Provider</label><select id="aiProvider" class="select wide">${providers.map(p=>`<option value="${esc(p.id)}" ${p.id===cfg.provider?'selected':''}>${esc(p.name)}</option>`).join('')}</select>
+      <label>Modelo</label><input id="aiModel" class="input wide" value="${esc(cfg.model || '')}" placeholder="gpt-4.1-mini, gemini-1.5-flash, local-model..." />
+      <label>Base URL / Harness</label><input id="aiBaseUrl" class="input wide" value="${esc(cfg.baseUrl || '')}" placeholder="https://api.openai.com/v1 ou http://127.0.0.1:11434/v1" />
+      <label>API Key local</label><input id="aiApiKey" type="password" class="input wide" placeholder="Salvo localmente em .startup-ai/ai-secrets.json" />
+      <button id="saveAIConfig" class="btn">Salvar provider local</button>
+      <p class="help-text">Chaves não são commitadas. Use Offline para trabalhar sem API Key.</p>`;
+    el('saveAIConfig').onclick = saveAIConfig;
+  }catch(error){ el('aiProviderPanel').innerHTML = `<p>${esc(error.message)}</p>`; }
+}
+async function saveAIConfig(){
+  const body = { provider: el('aiProvider').value, model: el('aiModel').value, baseUrl: el('aiBaseUrl').value, apiKey: el('aiApiKey').value };
+  const res = await fetch('/api/ai/config', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+  const json = await res.json();
+  el('ideaResult').innerHTML = json.ok ? '<p>Provider salvo localmente.</p>' : `<p>${esc(json.error)}</p>`;
+  await hydrateProviderPanel();
+}
+async function runIdeaLab(){
+  const result = el('ideaResult');
+  result.innerHTML = '<p>Gerando plano com os agentes Startup AI OS...</p>';
+  const body = { idea: el('ideaText').value, context: el('ideaContext').value, companyType: el('companyType').value, horizon: el('ideaHorizon').value };
+  const res = await fetch('/api/idea-lab', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+  const json = await res.json();
+  if(!json.ok){ result.innerHTML = `<p>${esc(json.error)}</p>`; return; }
+  result.innerHTML = `<div class="provider-note">Provider: ${esc(json.result.provider)} · Modelo: ${esc(json.result.model)}</div>${markdownLite(json.result.markdown)}`;
+}
+
+
+function renderDossier(){
+  el('view-dossier').innerHTML = `<div class="cards">
+    <div class="card span-8"><h2>Dossiê de maturidade e transformação</h2><p>Use como consultoria com cliente: mede maturidade, conecta ideia/empresa/código, recomenda fase, GTM, arquitetura de dados, Kanban e roadmap.</p></div>
+    <div class="card span-4"><h2>Para quem serve</h2><p>Startup nova, empresa de tecnologia existente, empresa tradicional indo para o digital ou negócio físico buscando escala com IA/growth.</p></div>
+    <div class="card span-6">
+      <h2>Brief da empresa</h2>
+      <label>Nome</label><input id="dossierCompany" class="input wide" placeholder="Nome da empresa ou projeto" />
+      <label>Tipo</label><select id="dossierType" class="select wide"><option value="startup">Startup / empresa de tecnologia</option><option value="existing-tech-company">Empresa de tecnologia existente</option><option value="traditional-digitalization">Empresa tradicional indo para o digital</option><option value="physical-business">Negócio físico + tecnologia</option></select>
+      <label>Setor</label><input id="dossierIndustry" class="input wide" placeholder="Educação, saúde, varejo, serviços, indústria..." />
+      <label>Contexto atual</label><textarea id="dossierCurrent" class="textarea big" placeholder="Como a empresa funciona hoje? Quais dores, processos, canais, equipe e limitações?"></textarea>
+      <label>Objetivos</label><textarea id="dossierGoals" class="textarea" placeholder="O que precisa alcançar nos próximos dias, semanas e meses?"></textarea>
+    </div>
+    <div class="card span-6">
+      <h2>Evidências técnicas</h2>
+      <label>Caminho local do repositório/código</label><input id="dossierRepoPath" class="input wide" placeholder="Ex: C:\\Users\\...\\MeuProjeto" />
+      <p class="help-text">Opcional. Se preencher, o Startup AI OS analisa código local e cruza com negócio. GitHub com autenticação entra como adapter futuro.</p>
+      <label>Ideia / transformação desejada</label><textarea id="dossierIdea" class="textarea big" placeholder="Descreva a ideia, transformação digital, produto, operação ou empresa que quer criar/melhorar..."></textarea>
+      <label>Dados, canais, time e restrições</label><textarea id="dossierExtra" class="textarea" placeholder="Dados disponíveis, canais, budget, equipe, prazo, restrições legais/técnicas..."></textarea>
+      <button id="runDossier" class="btn primary">Gerar dossiê completo</button>
+    </div>
+    <div class="card span-12"><h2>Resultado</h2><div id="dossierResult" class="idea-result empty">O dossiê aparecerá aqui com maturidade, SWOT, GTM, arquitetura de dados, Kanban e roadmap.</div></div>
+  </div>`;
+  el('runDossier').onclick = runDossier;
+}
+async function runDossier(){
+  const result = el('dossierResult');
+  result.innerHTML = '<p>Analisando maturidade, negócio, tecnologia e operação...</p>';
+  const body = {
+    companyName: el('dossierCompany').value,
+    companyType: el('dossierType').value,
+    industry: el('dossierIndustry').value,
+    currentState: el('dossierCurrent').value,
+    goals: el('dossierGoals').value,
+    idea: el('dossierIdea').value,
+    constraints: el('dossierExtra').value,
+    repositoryPath: el('dossierRepoPath').value.trim(),
+    includeCurrentRepository: !el('dossierRepoPath').value.trim()
+  };
+  const res = await fetch('/api/company-dossier', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+  const json = await res.json();
+  if(!json.ok){ result.innerHTML = `<p>${esc(json.error)}</p>`; return; }
+  const d = json.dossier;
+  result.innerHTML = `<div class="provider-note">Maturidade: ${esc(d.maturity.level)} · ${esc(d.maturity.score)}/5 · Fase: ${esc(d.maturity.recommendedStage.label)}</div>${markdownLite(d.markdown)}`;
+}
+
 function renderOverview(){ const d=state.data; const langs=Object.entries(d.summary?.loc_by_language||{}).sort((a,b)=>b[1]-a[1]).slice(0,8); const layers=d.architecture?.layers||[]; el('view-overview').innerHTML=`<div class="panel-grid"><div class="cards"><div class="card span-4"><h3>Arquivos</h3><div class="metric">${fmt(d.project?.files_scanned)}</div><p>Total lido pelo analisador.</p></div><div class="card span-4"><h3>Linhas</h3><div class="metric">${fmt(d.project?.total_lines)}</div><p>Código e documentação.</p></div><div class="card span-4"><h3>Oportunidades</h3><div class="metric">${fmt(d.improvements?.length)}</div><p>Melhorias acionáveis.</p></div><div class="card span-6"><h2>Camadas detectadas</h2><p>${layers.map(pill).join(' ')||'Nenhuma camada forte detectada.'}</p></div><div class="card span-6"><h2>Linguagens</h2><p>${langs.map(([k,v])=>pill(`${k} · ${fmt(v)} linhas`)).join(' ')}</p></div><div class="card span-12"><h2>Riscos</h2><ul>${(d.risks||[]).map(r=>`<li>${esc(r)}</li>`).join('')||'<li>Nenhum risco crítico detectado automaticamente.</li>'}</ul></div></div></div>`; }
 function renderCanvas(){ const c=state.data.business_canvas||{}; const block=(title, cls='')=>`<div class="canvas-block ${cls}"><h3>${esc(title)}</h3><ul>${(c[title]||[]).map(i=>`<li>${esc(i)}</li>`).join('')}</ul></div>`; el('view-canvas').innerHTML=`<div class="card"><h2>Business Model Canvas</h2><p>Hipótese automática para discussão de produto.</p></div><div class="canvas-grid">${block('Key Partners')} ${block('Key Activities')} ${block('Value Propositions','value')} ${block('Customer Relationships')} ${block('Customer Segments','segment')} ${block('Key Resources')} ${block('Channels')} ${block('Cost Structure','wide')} ${block('Revenue Streams','wide')}</div>`; }
 function renderDocs(){ const d=state.data; const layers=(d.architecture?.layers||[]).map(x=>`<li><b>${esc(x)}</b>: camada detectada automaticamente.</li>`).join(''); el('view-docs').innerHTML=`<div class="cards"><div class="card span-8"><h2>Documento vivo do produto</h2><p>Este workspace ajuda um PM a entender valor, arquitetura, versões e mudanças sem abrir o código primeiro.</p><h3>Onde termina PM e começa DevOps?</h3><p><b>PM AI:</b> impacto de mudanças, versões, riscos, roadmap, produto e arquitetura compreensível. <b>DevOps OS futuro:</b> deploy, runtime, logs, incidentes, ambientes, custos e confiabilidade.</p><ol><li>Comece pelo Mapa 3D para entender dependências.</li><li>Use Versões para ver evolução e commits.</li><li>Transforme Melhorias em PRD/backlog.</li></ol></div><div class="card span-4"><h2>Objetivo</h2><p>Transformar repositórios em mapas de produto, arquitetura e melhoria contínua.</p></div><div class="card span-12"><h2>Camadas</h2><ul>${layers||'<li>Nenhuma camada forte detectada.</li>'}</ul></div></div>`; }
