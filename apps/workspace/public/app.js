@@ -29,7 +29,7 @@ function bindShell(){
   window.addEventListener('resize', () => { drawMap(); draw3d(); });
 }
 function showView(view){ state.view=view; qsa('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view)); qsa('.view').forEach(v=>v.classList.remove('active')); el(`view-${view}`).classList.add('active'); if(view==='architecture') setTimeout(drawMap,30); if(view==='graph3d') setTimeout(draw3d,30); if(view==='activity') renderActivity(); }
-function renderAll(){ renderIdeaLab(); renderDossier(); renderOverview(); renderCanvas(); renderDocs(); renderImprovements(); renderFiles(); renderActivity(); rebuildMap(true); build3d(true); }
+function renderAll(){ renderIdeaLab(); renderDossier(); renderSolutionArchitecture(); renderOverview(); renderCanvas(); renderDocs(); renderImprovements(); renderFiles(); renderActivity(); rebuildMap(true); build3d(true); }
 function bindEvents(){
   if (!window.EventSource) return;
   const source = new EventSource('/api/events');
@@ -201,7 +201,75 @@ function renderDossier(){
   </div>`;
   el('runDossier').onclick = runDossier;
 }
-async function runDossier(){
+async 
+function renderSolutionArchitecture(){
+  el('view-solution').innerHTML = `<div class="cards">
+    <div class="card span-8"><h2>Arquitetura do Negócio e da Solução</h2><p>Antes de código, desenhe processos, pessoas, agentes de IA, dados, ferramentas, produto digital, stack, GTM e operação. Se já existir repositório, ele entra como evidência técnica; se não existir, arquitetamos o que deve ser construído.</p></div>
+    <div class="card span-4"><h2>Repositório é opcional</h2><p>Use local path agora. GitHub com autenticação entra como adapter. Sem código, o foco é negócio, processos e produto a desenvolver.</p></div>
+    <div class="card span-6"><h2>Negócio e processos</h2>
+      <label>Nome da empresa/projeto</label><input id="solutionCompany" class="input wide" placeholder="Empresa, projeto ou ideia" />
+      <label>Tipo</label><select id="solutionType" class="select wide"><option value="idea-zero">Ideia do zero</option><option value="traditional-digitalization">Empresa tradicional para digital</option><option value="existing-tech-company">Empresa tech existente</option><option value="physical-business">Negócio físico com tecnologia</option></select>
+      <label>ICP / público</label><textarea id="solutionIcp" class="textarea" placeholder="Quem compra, usa ou sofre a dor? Segmentos, cargos, região, maturidade..."></textarea>
+      <label>Problema central / dor</label><textarea id="solutionProblem" class="textarea" placeholder="Qual problema precisa resolver? Onde dói na operação? O que trava crescimento?"></textarea>
+      <label>Processos atuais ou desejados</label><textarea id="solutionProcesses" class="textarea big" placeholder="Aquisição, atendimento, vendas, entrega, suporte, financeiro, gestão, qualidade, dados..."></textarea>
+      <label>Ferramentas atuais</label><textarea id="solutionTools" class="textarea" placeholder="Planilhas, WhatsApp, CRM, ERP, Notion, sistemas internos, ferramentas manuais..."></textarea>
+    </div>
+    <div class="card span-6"><h2>Stack, IA, canais e evidências</h2>
+      <label>Site</label><input id="solutionSite" class="input wide" placeholder="https://..." />
+      <label>Instagram</label><input id="solutionInstagram" class="input wide" placeholder="https://instagram.com/..." />
+      <label>LinkedIn</label><input id="solutionLinkedin" class="input wide" placeholder="https://linkedin.com/company/..." />
+      <label>Repositório local, se existir</label><input id="solutionRepo" class="input wide" placeholder="C:\\Users\\...\\Projeto" />
+      <label>GitHub URL / futuro adapter</label><input id="solutionGithub" class="input wide" placeholder="https://github.com/owner/repo" />
+      <label>Dados, canais, métricas, time e restrições</label><textarea id="solutionContext" class="textarea big" placeholder="Dados disponíveis, canais, GTM, métricas, equipe, orçamento, prazo, compliance, integrações..."></textarea>
+      <button id="runSolutionArchitecture" class="btn primary">Gerar arquitetura completa</button>
+    </div>
+    <div class="card span-12"><h2>Blueprint</h2><div id="solutionResult" class="idea-result empty">O blueprint vai aparecer em cards: processos, pessoas, agentes de IA, sistemas, stack, roadmap e matrizes.</div></div>
+  </div>`;
+  el('runSolutionArchitecture').onclick = runSolutionArchitecture;
+}
+async function runSolutionArchitecture(){
+  const result = el('solutionResult');
+  result.innerHTML = '<p>Gerando arquitetura do negócio, processos, IA, stack e produto digital...</p>';
+  const body = {
+    companyName: el('solutionCompany').value,
+    companyType: el('solutionType').value,
+    icp: el('solutionIcp').value,
+    coreProblem: el('solutionProblem').value,
+    currentProcesses: el('solutionProcesses').value,
+    tools: el('solutionTools').value,
+    siteUrl: el('solutionSite').value,
+    instagramUrl: el('solutionInstagram').value,
+    linkedinUrl: el('solutionLinkedin').value,
+    socialLinks: [el('solutionInstagram').value, el('solutionLinkedin').value].filter(Boolean).join('\n'),
+    repositoryPath: el('solutionRepo').value.trim(),
+    githubUrl: el('solutionGithub').value.trim(),
+    constraints: el('solutionContext').value,
+    dataSources: el('solutionContext').value,
+    channels: el('solutionContext').value,
+    metrics: el('solutionContext').value,
+    includeCurrentRepository: false
+  };
+  const res = await fetch('/api/solution-architecture', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(body) });
+  const json = await res.json();
+  if(!json.ok){ result.innerHTML = `<p>${esc(json.error)}</p>`; return; }
+  const b = json.blueprint;
+  result.innerHTML = renderBlueprint(b);
+}
+function renderBlueprint(b){
+  const renderCard = card => `<div class="blueprint-card"><span>${esc(card.type || 'card')}</span><h3>${esc(card.title)}</h3><p>${esc(card.description || card.purpose || card.problem || '')}</p><small>${esc(card.owner || card.build || '')}</small></div>`;
+  const renderProcess = p => `<div class="blueprint-card"><span>processo</span><h3>${esc(p.title)}</h3><p>${esc(p.problem)}</p><small>Automação: ${esc(p.automation)}</small></div>`;
+  const renderAgent = a => `<div class="blueprint-card"><span>agente IA</span><h3>${esc(a.title)}</h3><p>${esc(a.where)}</p><small>${esc((a.jobs || []).join(', '))}</small></div>`;
+  const renderSystem = s => `<div class="blueprint-card"><span>sistema</span><h3>${esc(s.title)}</h3><p>${esc(s.purpose)}</p><small>${esc(s.build)}</small></div>`;
+  const stack = (b.stack || []).map(s => `<div class="blueprint-card"><span>stack</span><h3>${esc(s.stage)}</h3><p>${esc((s.stack || []).join(', '))}</p><small>${esc(s.why)}</small></div>`).join('');
+  const road = (b.roadmap || []).map(r => `<div class="blueprint-card"><span>roadmap</span><h3>${esc(r.horizon)}</h3><p>${esc((r.actions || []).join(' · '))}</p></div>`).join('');
+  const missing = (b.summary?.missing || []).map(x => `<li>${esc(x)}</li>`).join('') || '<li>Nenhuma lacuna crítica óbvia.</li>';
+  return `<div class="provider-note">Modo: ${esc(b.mode)} · Repositório: ${b.summary?.hasRepository ? 'conectado' : 'opcional/não conectado'} · Site: ${b.summary?.hasWebsite ? 'analisado' : 'não informado'}</div>
+    <div class="card"><h2>Lacunas antes de construir</h2><ul>${missing}</ul></div>
+    <div class="blueprint-grid">${(b.cards||[]).map(renderCard).join('')}${(b.process||[]).map(renderProcess).join('')}${(b.agents||[]).map(renderAgent).join('')}${(b.systems||[]).map(renderSystem).join('')}${stack}${road}</div>
+    <div class="card"><h2>Markdown executivo</h2>${markdownLite(b.markdown || '')}</div>`;
+}
+
+function runDossier(){
   const result = el('dossierResult');
   result.innerHTML = '<p>Mapeando empresa, site, redes, dados, operação, código e maturidade...</p>';
   const body = {

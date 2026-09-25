@@ -106,3 +106,10 @@ pre { margin:0; padding:12px; border-radius:12px; background:#0b0d11; color:#d9d
 .auto-card h3 { margin: 7px 0; font-size: 15px; }
 .auto-card p { margin: 0; color: var(--muted); line-height: 1.45; }
 @media (max-width: 1120px) { .form-grid.two, .diagnostic-cards { grid-template-columns: 1fr; } .chat-card { max-height: none; } }
+
+.blueprint-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-bottom: 18px; }
+.blueprint-card { border: 1px solid var(--line); border-radius: 16px; padding: 14px; background: rgba(255,255,255,.035); min-height: 150px; }
+.blueprint-card span { display:inline-flex; margin-bottom: 8px; font-size: 11px; text-transform: uppercase; letter-spacing:.12em; color: var(--accent-2); }
+.blueprint-card h3 { margin: 0 0 8px; font-size: 16px; }
+.blueprint-card p { margin: 0 0 8px; color: var(--muted); line-height: 1.48; }
+.blueprint-card small { color: var(--soft); opacity: .72; }

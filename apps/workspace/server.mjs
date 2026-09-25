@@ -8,6 +8,7 @@ import httpNet from 'node:http';
 import httpsNet from 'node:https';
 import { PROVIDERS, readAIConfig, saveAIConfig, runIdeaLab, runStartupChat } from './ai/providers.mjs';
 import { generateCompanyDossier } from './ai/consulting.mjs';
+import { generateSolutionArchitecture } from './ai/solution-architecture.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -263,6 +264,37 @@ const server = http.createServer(async (req, res) => {
       const files = runAnalyzer(requestedPath);
       const analysis = JSON.parse(fs.readFileSync(files.output, 'utf8'));
       sendJson(res, 200, { ok: true, sourcePath: requestedPath, analysis });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+
+  if (url.pathname === '/api/solution-architecture') {
+    if (req.method !== 'POST') {
+      sendJson(res, 405, { ok: false, error: 'POST required' });
+      return;
+    }
+    try {
+      const body = await readJsonBody(req);
+      let repoAnalysis = null;
+      if (body.repositoryPath) {
+        const requestedPath = path.resolve(process.cwd(), body.repositoryPath);
+        const files = runAnalyzer(requestedPath);
+        repoAnalysis = JSON.parse(fs.readFileSync(files.output, 'utf8'));
+      } else if (body.includeCurrentRepository) {
+        repoAnalysis = JSON.parse(fs.readFileSync(analysisFiles.output, 'utf8'));
+      }
+      const snapshots = [];
+      for (const candidate of [body.siteUrl, body.instagramUrl, body.linkedinUrl, body.youtubeUrl].filter(Boolean)) {
+        try {
+          const fetched = await fetchUrlText(candidate);
+          if (fetched.ok) snapshots.push(extractWebsiteSnapshot(fetched.url, fetched.body));
+        } catch {}
+      }
+      const blueprint = generateSolutionArchitecture(body, repoAnalysis, snapshots.filter(x => x && x.ok !== false));
+      sendJson(res, 200, { ok: true, blueprint });
     } catch (error) {
       sendJson(res, 500, { ok: false, error: error.message });
     }
