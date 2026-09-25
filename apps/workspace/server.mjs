@@ -9,6 +9,7 @@ import httpsNet from 'node:https';
 import { PROVIDERS, readAIConfig, saveAIConfig, runIdeaLab, runStartupChat } from './ai/providers.mjs';
 import { generateCompanyDossier } from './ai/consulting.mjs';
 import { generateSolutionArchitecture } from './ai/solution-architecture.mjs';
+import { generateToolboxPlan, buildDeliveryPlan } from './ai/toolbox.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -328,6 +329,32 @@ const server = http.createServer(async (req, res) => {
     return;
   }
 
+
+  if (url.pathname === '/api/toolbox/plan') {
+    if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'POST required' });
+    try {
+      const body = await readJsonBody(req);
+      const plan = generateToolboxPlan(body);
+      sendJson(res, 200, { ok: true, plan });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
+  if (url.pathname === '/api/client-project') {
+    if (req.method !== 'POST') return sendJson(res, 405, { ok: false, error: 'POST required' });
+    try {
+      const body = await readJsonBody(req);
+      const toolbox = generateToolboxPlan(body);
+      const project = buildDeliveryPlan(body, toolbox.recommended, toolbox.mlPlan);
+      sendJson(res, 200, { ok: true, project, toolbox });
+    } catch (error) {
+      sendJson(res, 500, { ok: false, error: error.message });
+    }
+    return;
+  }
+
   if (url.pathname === '/api/report') {
     res.writeHead(200, { 'content-type': 'text/markdown; charset=utf-8', 'cache-control': 'no-store' });
     fs.createReadStream(analysisFiles.report).pipe(res);
@@ -365,7 +392,7 @@ const server = http.createServer(async (req, res) => {
     res.end('Not found');
     return;
   }
-  res.writeHead(200, { 'content-type': contentType(filePath) });
+  res.writeHead(200, { 'content-type': contentType(filePath), 'cache-control': 'no-store' });
   fs.createReadStream(filePath).pipe(res);
 });
 

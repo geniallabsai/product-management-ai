@@ -29,7 +29,7 @@ function bindShell(){
   window.addEventListener('resize', () => { drawMap(); draw3d(); });
 }
 function showView(view){ state.view=view; qsa('.nav-item').forEach(n=>n.classList.toggle('active', n.dataset.view===view)); qsa('.view').forEach(v=>v.classList.remove('active')); el(`view-${view}`).classList.add('active'); if(view==='architecture') setTimeout(drawMap,30); if(view==='graph3d') setTimeout(draw3d,30); if(view==='activity') renderActivity(); }
-function renderAll(){ renderIdeaLab(); renderDossier(); renderSolutionArchitecture(); renderOverview(); renderCanvas(); renderDocs(); renderImprovements(); renderFiles(); renderActivity(); rebuildMap(true); build3d(true); }
+function renderAll(){ renderIdeaLab(); renderDossier(); renderSolutionArchitecture(); renderToolbox(); renderDelivery(); renderOverview(); renderCanvas(); renderDocs(); renderImprovements(); renderFiles(); renderActivity(); rebuildMap(true); build3d(true); }
 function bindEvents(){
   if (!window.EventSource) return;
   const source = new EventSource('/api/events');
@@ -333,3 +333,87 @@ function graphWheel(e){ e.preventDefault(); state.graph3d.zoom=Math.max(.35,Math
 function renderGraphInspector(n){ el('graphInspector').innerHTML=`<div class="inspect-card"><h3>${esc(n.label)}</h3><div class="inspect-meta">${pill(n.group)}${pill(n.type)}</div><p>${esc(n.desc||'')}</p>${n.raw?.path?`<button class="btn primary" onclick="window.openFileFromInspector('${esc(n.raw.path)}')">Abrir código</button>`:''}<pre>${esc(JSON.stringify(n.raw||n,null,2))}</pre></div>`; }
 
 boot().catch(error=>{document.body.innerHTML=`<pre style="padding:24px;color:#fff;background:#111;height:100vh;overflow:auto">${esc(error.stack||error.message)}</pre>`});
+
+
+function collectToolboxContext(){
+  const read = id => document.getElementById(id)?.value || '';
+  return {
+    companyName: read('dossierCompany') || read('solutionCompany') || read('deliveryClient'),
+    clientName: read('deliveryClient') || read('dossierCompany') || read('solutionCompany'),
+    companyType: read('dossierType') || read('solutionType'),
+    objective: read('deliveryObjective') || read('dossierGoals') || read('solutionGoal'),
+    goals: read('dossierGoals') || read('deliveryObjective'),
+    idea: read('dossierIdea') || read('solutionGoal') || read('ideaText'),
+    currentProcesses: read('dossierOps') || read('solutionProcesses'),
+    tools: read('solutionTools') || read('dossierSystems'),
+    dataSources: read('dossierDataSources') || read('solutionData'),
+    channels: read('dossierChannels') || read('solutionChannels'),
+    metrics: read('dossierMetrics') || read('solutionMetrics'),
+    constraints: read('dossierRisks') || read('solutionContext'),
+    repositoryPath: read('dossierRepoPath') || read('solutionRepo'),
+    githubUrl: read('solutionGithub'),
+    budget: read('deliveryBudget') || read('dossierBudget'),
+    deadline: read('deliveryDeadline')
+  };
+}
+
+function renderToolbox(){
+  el('view-toolbox').innerHTML = `<div class="cards">
+    <div class="card span-8"><h2>Caixa de Ferramentas do Arquiteto</h2><p>Selecione ferramentas de negócio, GTM, processos, dados, IA, ML, MLOps, automação e engenharia conforme o diagnóstico do cliente.</p></div>
+    <div class="card span-4"><h2>Decisão de IA</h2><p>Nem tudo precisa fine-tuning. O sistema decide entre processo, RAG, agente, ML clássico, LLM local, API ou pipeline Python.</p></div>
+    <div class="card span-6"><h2>Contexto do cliente/projeto</h2>
+      <label>Objetivo</label><textarea id="toolboxObjective" class="textarea" placeholder="Ex: reduzir retrabalho no atendimento, prever evasão, criar produto digital, automatizar diagnóstico..."></textarea>
+      <label>Dados/conversas disponíveis</label><textarea id="toolboxData" class="textarea" placeholder="WhatsApp, CRM, planilhas, banco, tickets, áudios, documentos, site, redes..."></textarea>
+      <label>Hipótese de IA/ML</label><textarea id="toolboxAI" class="textarea" placeholder="Fine-tuning? RAG? LLM local? Score? Previsão? Classificação? Copiloto?"></textarea>
+      <button id="runToolbox" class="btn primary">Gerar caixa de ferramentas</button>
+    </div>
+    <div class="card span-6"><h2>Resultado</h2><div id="toolboxResult" class="empty">O plano de ferramentas aparecerá aqui.</div></div>
+  </div>`;
+  el('runToolbox').onclick = runToolbox;
+}
+async function runToolbox(){
+  const context = collectToolboxContext();
+  context.objective = context.objective || el('toolboxObjective').value;
+  context.dataSources = [context.dataSources, el('toolboxData').value].filter(Boolean).join('\n');
+  context.idea = [context.idea, el('toolboxAI').value].filter(Boolean).join('\n');
+  const out = el('toolboxResult');
+  out.innerHTML = '<p>Selecionando ferramentas, pipelines e decisões de IA...</p>';
+  const res = await fetch('/api/toolbox/plan', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(context) });
+  const json = await res.json();
+  if(!json.ok){ out.innerHTML = `<p>${esc(json.error)}</p>`; return; }
+  out.innerHTML = renderToolboxPlan(json.plan);
+}
+function renderToolboxPlan(plan){
+  const cats = (plan.recommended || []).map(c => `<div class="tool-card"><h3>${esc(c.name)}</h3><p>${(c.tools||[]).map(pill).join('')}</p></div>`).join('');
+  const decision = (plan.mlDecisionTree || []).map(d => `<li><b>${esc(d.condition)}:</b> ${esc(d.recommendation)}</li>`).join('');
+  const steps = (plan.mlPlan?.steps || []).map(x => `<li>${esc(x)}</li>`).join('');
+  return `<div class="toolbox-grid">${cats}</div>
+    <div class="card"><h3>Árvore de decisão IA/ML</h3><ul>${decision}</ul></div>
+    <div class="card"><h3>Plano ML/MLOps/Python</h3><p>${pill(plan.mlPlan?.shouldUseML ? 'usar ML' : 'não começar por ML')}${pill(plan.mlPlan?.shouldFineTune ? 'avaliar fine-tuning' : 'fine-tuning ainda não')}${pill(plan.mlPlan?.localAIRecommended ? 'IA local recomendada' : 'API/hosted ok')}</p><ul>${steps}</ul><p>${(plan.mlPlan?.tools||[]).map(pill).join('')}</p></div>`;
+}
+
+function renderDelivery(){
+  el('view-delivery').innerHTML = `<div class="cards">
+    <div class="card span-8"><h2>Gestão do Projeto / Cliente</h2><p>Controle o objetivo, prazo, entregas, Kanban e papéis do projeto de arquitetura, IA, GTM e tecnologia.</p></div>
+    <div class="card span-4"><h2>Ritmo</h2><p>Diagnóstico → Arquitetura → Priorização → Implantação → Validação → Escala.</p></div>
+    <div class="card span-5"><label>Cliente</label><input id="deliveryClient" class="input wide" placeholder="Cliente / empresa"/><label>Objetivo</label><textarea id="deliveryObjective" class="textarea big" placeholder="Objetivo do projeto, transformação ou produto digital..."></textarea><label>Prazo</label><input id="deliveryDeadline" class="input wide" placeholder="Ex: 30 dias, 90 dias, Q1"/><label>Budget/time</label><input id="deliveryBudget" class="input wide" placeholder="Budget, equipe, horas, restrições"/><button id="runDelivery" class="btn primary">Criar Kanban de entrega</button></div>
+    <div class="card span-7"><h2>Kanban</h2><div id="deliveryResult" class="empty">O Kanban aparecerá aqui.</div></div>
+  </div>`;
+  el('runDelivery').onclick = runDelivery;
+}
+async function runDelivery(){
+  const context = collectToolboxContext();
+  const out = el('deliveryResult');
+  out.innerHTML = '<p>Montando gestão do projeto...</p>';
+  const res = await fetch('/api/client-project', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(context) });
+  const json = await res.json();
+  if(!json.ok){ out.innerHTML = `<p>${esc(json.error)}</p>`; return; }
+  out.innerHTML = renderDeliveryPlan(json.project, json.toolbox);
+}
+function renderDeliveryPlan(project, toolbox){
+  const col = (name, items) => `<div class="kanban-col"><h3>${esc(name)}</h3>${(items||[]).map(i=>`<div class="kanban-card">${esc(i)}</div>`).join('')}</div>`;
+  const k = project.kanban || {};
+  return `<div class="provider-note">Cliente: ${esc(project.client)} · ${esc(project.objective)}</div>
+    <div class="kanban-board">${col('Backlog', k.backlog)}${col('Fazer', k.todo)}${col('Fazendo', k.doing)}${col('Validar', k.validation)}${col('Feito', k.done)}</div>
+    <div class="card"><h3>Entregáveis</h3><p>${(project.deliverables||[]).map(pill).join('')}</p><h3>Papéis</h3><p>${(project.roles||[]).map(pill).join('')}</p><h3>Riscos</h3><ul>${(project.risks||[]).map(r=>`<li>${esc(r)}</li>`).join('')}</ul></div>`;
+}

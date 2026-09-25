@@ -113,3 +113,13 @@ pre { margin:0; padding:12px; border-radius:12px; background:#0b0d11; color:#d9d
 .blueprint-card h3 { margin: 0 0 8px; font-size: 16px; }
 .blueprint-card p { margin: 0 0 8px; color: var(--muted); line-height: 1.48; }
 .blueprint-card small { color: var(--soft); opacity: .72; }
+
+
+.toolbox-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin-bottom: 16px; }
+.tool-card, .blueprint-card { border: 1px solid var(--line); background: rgba(255,255,255,.035); border-radius: 16px; padding: 14px; }
+.tool-card h3, .blueprint-card h3 { margin: 0 0 8px; }
+.kanban-board { display: grid; grid-template-columns: repeat(5, minmax(160px, 1fr)); gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+.kanban-col { min-height: 260px; border: 1px solid var(--line); border-radius: 16px; padding: 10px; background: rgba(255,255,255,.025); }
+.kanban-col h3 { margin: 0 0 10px; font-size: 13px; color: var(--accent-2); text-transform: uppercase; letter-spacing: .08em; }
+.kanban-card { border: 1px solid var(--line); border-radius: 12px; background: var(--panel); padding: 10px; margin-bottom: 8px; color: var(--soft); font-size: 13px; }
+@media (max-width: 1120px) { .toolbox-grid { grid-template-columns: 1fr; } .kanban-board { grid-template-columns: repeat(5, 220px); } }
